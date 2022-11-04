@@ -1,0 +1,9 @@
+inverter:
+  port: 1.2.3.4:23 # required port name (e.g. /dev/ttyUSB0 for serial or 1.2.3.4:23 for TCP/IP
+  loggerSerial: 123456 # required logger serial number
+  readInterval: 60 # update interval in seconds, default 60
+mqtt:
+  url: 1.2.3.4:5678 #MQTT broker URL (e.g. 1.2.3.4:5678)
+  user: #MQTT username (leave empty when not needed)
+  password: #MQTT password (leave empty when not needed)
+  prefix: /sensors/energy/inverter #topic on which data will be sended

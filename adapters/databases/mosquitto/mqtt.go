@@ -9,6 +9,13 @@ import (
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
 
+type MqttConfig struct {
+	Url      string `yaml:"url"`
+	User     string `yaml:"user"`
+	Password string `yaml:"password"`
+	Prefix   string `yaml:"prefix"`
+}
+
 type MosquittoConnection struct {
 	client mqtt.Client
 	prefix string
@@ -22,16 +29,24 @@ var connectLostHandler mqtt.ConnectionLostHandler = func(client mqtt.Client, err
 	log.Printf("Connect lost: %v", err)
 }
 
-func New(url string, prefix string) (*MosquittoConnection, error) {
+func New(config *MqttConfig) (*MosquittoConnection, error) {
 	opts := mqtt.NewClientOptions()
-	opts.AddBroker(url)
+	opts.AddBroker(config.Url)
 	opts.SetClientID("sofar")
 	opts.OnConnect = connectHandler
 	opts.OnConnectionLost = connectLostHandler
 
+	if config.User != "" {
+		opts.SetUsername(config.User)
+	}
+
+	if config.Password != "" {
+		opts.SetPassword(config.Password)
+	}
+
 	conn := &MosquittoConnection{}
 	conn.client = mqtt.NewClient(opts)
-	conn.prefix = prefix
+	conn.prefix = config.Prefix
 	if token := conn.client.Connect(); token.Wait() && token.Error() != nil {
 		return nil, token.Error()
 	}

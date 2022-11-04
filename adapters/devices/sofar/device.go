@@ -1,6 +1,6 @@
 package sofar
 
-import "git.xelasys.ro/sigxcpu/sofar/ports"
+import "github.com/kubaceg/sofar_g3_lsw3_logger_reader/ports"
 
 type SofarLogger struct {
 	serialNumber string

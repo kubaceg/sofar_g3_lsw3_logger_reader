@@ -5,7 +5,7 @@ import (
 	"net"
 	"time"
 
-	"git.xelasys.ro/sigxcpu/sofar/ports"
+	"github.com/kubaceg/sofar_g3_lsw3_logger_reader/ports"
 )
 
 type tcpIpPort struct {

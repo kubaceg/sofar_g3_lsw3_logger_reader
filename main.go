@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"log"
 	"strings"
 	"time"
@@ -9,73 +8,52 @@ import (
 	"net/http"
 	_ "net/http/pprof"
 
-	"git.xelasys.ro/sigxcpu/sofar/adapters/comms/serial"
-	"git.xelasys.ro/sigxcpu/sofar/adapters/comms/tcpip"
-	"git.xelasys.ro/sigxcpu/sofar/adapters/databases/httpnow"
-	"git.xelasys.ro/sigxcpu/sofar/adapters/databases/influx"
-	"git.xelasys.ro/sigxcpu/sofar/adapters/databases/mosquitto"
-	"git.xelasys.ro/sigxcpu/sofar/adapters/devices/sofar"
+	"github.com/kubaceg/sofar_g3_lsw3_logger_reader/adapters/comms/serial"
+	"github.com/kubaceg/sofar_g3_lsw3_logger_reader/adapters/comms/tcpip"
+	"github.com/kubaceg/sofar_g3_lsw3_logger_reader/adapters/databases/httpnow"
+	"github.com/kubaceg/sofar_g3_lsw3_logger_reader/adapters/databases/mosquitto"
+	"github.com/kubaceg/sofar_g3_lsw3_logger_reader/adapters/devices/sofar"
 	gser "go.bug.st/serial"
 
-	"git.xelasys.ro/sigxcpu/sofar/ports"
+	"github.com/kubaceg/sofar_g3_lsw3_logger_reader/ports"
 )
 
 var (
+	config             Config
 	port               ports.CommunicationPort
-	db                 ports.Database
 	mqtt               ports.DatabaseWithListener
 	nowDB              ports.Database
 	device             ports.Device
 	lastDateTimeUpdate time.Time
-	loggerSerial       string
 
-	hasInflux bool
-	hasMQTT   bool
+	hasMQTT bool
 )
 
-func init() {
-	var portName, dbURL, dbName, mqttURL string
-
-	flag.StringVar(&portName, "port", "", "port name (e.g. /dev/ttyUSB0 for serial or 1.2.3.4:23 for TCP/IP")
-	flag.StringVar(&dbURL, "influx-url", "", "Influx DB URL for push (e.g. http://localhost:8086")
-	flag.StringVar(&dbName, "influx-db", "", "Influx DB database name")
-	flag.StringVar(&mqttURL, "mqtt-url", "", "MQTT broker URL (e.g. tcp://1.2.3.4:5678")
-	flag.StringVar(&loggerSerial, "logger-serial", "", "Logger serial number")
-	flag.Parse()
-
-	hasInflux = dbURL != "" && dbName != ""
-	hasMQTT = mqttURL != ""
-
-	// check config
-	if portName == "" {
-		flag.Usage()
-		log.Fatalf("please specify port")
+func initialize() {
+	config, err := NewConfig("config.yaml")
+	if err != nil {
+		log.Fatalln(err)
 	}
 
-	if isSerialPort(portName) {
-		port = serial.New(portName, 2400, 8, gser.NoParity, gser.OneStopBit)
-		log.Printf("using serial communcations port %s", portName)
+	hasMQTT = config.Mqtt.Url != "" && config.Mqtt.Prefix != ""
+
+	if isSerialPort(config.Inverter.Port) {
+		port = serial.New(config.Inverter.Port, 2400, 8, gser.NoParity, gser.OneStopBit)
+		log.Printf("using serial communcations port %s", config.Inverter.Port)
 	} else {
-		port = tcpip.New(portName)
-		log.Printf("using TCP/IP communications port %s", portName)
+		port = tcpip.New(config.Inverter.Port)
+		log.Printf("using TCP/IP communications port %s", config.Inverter.Port)
 	}
 
-	if hasInflux {
-		log.Printf("starting with Influx URL: %s, Database: %s", dbURL, dbName)
-
-		db = influx.New(dbURL, dbName, map[string]string{"device": "sofar"})
-	}
-
-	var err error
 	if hasMQTT {
-		mqtt, err = mosquitto.New(mqttURL, "/sensors/energy/inverter2")
+		mqtt, err = mosquitto.New(&config.Mqtt)
 		if err != nil {
 			log.Fatalf("MQTT connection failed: %s", err)
 		}
 
 	}
 
-	device = sofar.NewSofarLogger(loggerSerial, port)
+	device = sofar.NewSofarLogger(config.Inverter.LoggerSerial, port)
 
 	nowDB = httpnow.NewHttpNow(8081)
 
@@ -86,6 +64,7 @@ func init() {
 }
 
 func main() {
+	initialize()
 
 	for {
 		log.Printf("performing measurements")
@@ -96,14 +75,6 @@ func main() {
 			log.Printf("failed to perform measurements: %s", err)
 			time.Sleep(5 * time.Second)
 			continue
-		}
-
-		if hasInflux {
-			err = db.InsertRecord(measurements)
-
-			if err != nil {
-				log.Printf("failed to insert into database: %s", err)
-			}
 		}
 
 		if hasMQTT {
@@ -117,7 +88,7 @@ func main() {
 
 		duration := time.Since(timeStart)
 
-		delay := 10*time.Second - duration
+		delay := time.Duration(config.Inverter.ReadInterval)*time.Second - duration
 		if delay <= 0 {
 			delay = 1 * time.Second
 		}

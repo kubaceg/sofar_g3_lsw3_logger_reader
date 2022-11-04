@@ -1,0 +1,55 @@
+stages:
+  - build
+  - docker
+  # - deploy
+
+before_script:
+  - export NAME=$(basename ${CI_REGISTRY_IMAGE})
+  - export IMAGE=${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}
+  - export IMAGE_LATEST=${CI_REGISTRY_IMAGE}:latest
+  - export IMAGE_TAG=${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG}
+  - export GOCACHE=$(pwd)/build-cache
+
+build:
+  image: golang:stretch
+  stage: build
+  artifacts:
+    untracked: true
+    expire_in: "10 mins"
+  script:
+    - tar xf gomod.tar -C / || true
+    - CGO_ENABLED=0 go build
+    - tar cf gomod.tar /go/pkg/mod || true
+    - go test -v ./...
+  cache:
+    key: "$CI_JOB_NAME-$CI_COMMIT_REF_SLUG"
+    paths:
+      - ./build-cache
+      - gomod.tar
+
+docker-dev:
+  stage: docker
+  dependencies:
+    - build
+  image: docker:dind
+  script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker build -t ${IMAGE} .
+    - docker tag ${IMAGE} ${IMAGE_LATEST}
+    - docker push ${IMAGE}
+    - docker push ${IMAGE_LATEST}
+  except:
+    - tags
+
+docker-release:
+  stage: docker
+  dependencies:
+    - build
+  image: docker:dind
+  script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker build -t ${IMAGE_TAG} .
+    - docker push ${IMAGE_TAG}
+  only:
+    - tags
+    

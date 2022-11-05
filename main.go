@@ -19,7 +19,7 @@ import (
 )
 
 var (
-	config             Config
+	config             *Config
 	port               ports.CommunicationPort
 	mqtt               ports.DatabaseWithListener
 	nowDB              ports.Database
@@ -30,7 +30,8 @@ var (
 )
 
 func initialize() {
-	config, err := NewConfig("config.yaml")
+	var err error
+	config, err = NewConfig("config.yaml")
 	if err != nil {
 		log.Fatalln(err)
 	}

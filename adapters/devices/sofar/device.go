@@ -3,11 +3,11 @@ package sofar
 import "github.com/kubaceg/sofar_g3_lsw3_logger_reader/ports"
 
 type SofarLogger struct {
-	serialNumber string
+	serialNumber uint
 	connPort     ports.CommunicationPort
 }
 
-func NewSofarLogger(serialNumber string, connPort ports.CommunicationPort) *SofarLogger {
+func NewSofarLogger(serialNumber uint, connPort ports.CommunicationPort) *SofarLogger {
 	return &SofarLogger{
 		serialNumber: serialNumber,
 		connPort:     connPort,

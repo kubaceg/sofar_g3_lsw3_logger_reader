@@ -11,7 +11,7 @@ import (
 type Config struct {
 	Inverter struct {
 		Port         string `yaml:"port"`
-		LoggerSerial string `yaml:"loggerSerial"`
+		LoggerSerial uint   `yaml:"loggerSerial"`
 		ReadInterval int    `default:"60" yaml:"readInterval"`
 	} `yaml:"inverter"`
 	Mqtt mosquitto.MqttConfig `yaml:"mqtt"`
@@ -22,7 +22,7 @@ func (c *Config) validate() error {
 		return errors.New("missing required inverter.port config")
 	}
 
-	if c.Inverter.LoggerSerial == "" {
+	if c.Inverter.LoggerSerial == 0 {
 		return errors.New("missing required inverter.loggerSerial config")
 	}
 

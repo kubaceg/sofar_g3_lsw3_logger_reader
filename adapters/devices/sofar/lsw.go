@@ -3,30 +3,27 @@ package sofar
 import (
 	"encoding/binary"
 	"fmt"
-	"strconv"
 
 	"github.com/kubaceg/sofar_g3_lsw3_logger_reader/ports"
 	"github.com/sigurn/crc16"
 )
 
 type LSWRequest struct {
-	serialNumber  string
+	serialNumber  uint
 	startRegister int
 	endRegister   int
-	frameBytes    []byte
 }
 
-func NewLSWRequest(serialNumber string, startRegister int, endRegister int) LSWRequest {
+func NewLSWRequest(serialNumber uint, startRegister int, endRegister int) LSWRequest {
 	return LSWRequest{
 		serialNumber:  serialNumber,
 		startRegister: startRegister,
 		endRegister:   endRegister,
-		frameBytes:    make([]byte, 36),
 	}
 }
 
 func (l LSWRequest) ToBytes() []byte {
-	buf := l.frameBytes
+	buf := make([]byte, 36)
 
 	// preamble
 	buf[0] = 0xa5
@@ -35,11 +32,8 @@ func (l LSWRequest) ToBytes() []byte {
 	buf[5] = 0x00
 	buf[6] = 0x00
 
-	// convert serial number to unsigned 32-bit int
-
-	uint32SerialNumber, _ := strconv.Atoi(l.serialNumber)
 	// fmt.Printf("serial number: %0X\n", uint32SerialNumber)
-	binary.LittleEndian.PutUint32(buf[7:], uint32(uint32SerialNumber))
+	binary.LittleEndian.PutUint32(buf[7:], uint32(l.serialNumber))
 
 	buf[11] = 0x02
 
@@ -52,19 +46,11 @@ func (l LSWRequest) ToBytes() []byte {
 	table := crc16.MakeTable(crc16.CRC16_MODBUS)
 	modbusCRC := crc16.Checksum(buf[26:32], table)
 
-	// h := crc16.New(crc16.Modbus)
-	// h.Reset()
-	// h.Write(buf[26:32])
-	// in := make([]byte, 0, h.Size())
-	// in = h.Sum(in)
-	// modbusCRC := binary.BigEndian.Uint16(in[0:2])
-
 	// append crc
 	binary.LittleEndian.PutUint16(buf[32:], modbusCRC)
 
 	// compute & append frame crc
-	buf[34] = l.Checksum()
-	// buf.Write([]byte{l.Checksum()})
+	buf[34] = l.checksum(buf)
 
 	// end of frame
 	buf[35] = 0x15
@@ -77,15 +63,15 @@ func (l LSWRequest) String() string {
 	return fmt.Sprintf("% 0X", l.ToBytes())
 }
 
-func (l LSWRequest) Checksum() uint8 {
+func (l LSWRequest) checksum(buf []byte) uint8 {
 	var checksum uint8
-	for _, b := range l.frameBytes[1 : len(l.frameBytes)-2] {
+	for _, b := range buf[1 : len(buf)-2] {
 		checksum += b
 	}
 	return checksum
 }
 
-func ReadData(connPort ports.CommunicationPort, serialNumber string) (map[string]interface{}, error) {
+func ReadData(connPort ports.CommunicationPort, serialNumber uint) (map[string]interface{}, error) {
 	result := make(map[string]interface{})
 
 	reply, err := readData(rrGridOutput, connPort, serialNumber)
@@ -127,7 +113,7 @@ func ReadData(connPort ports.CommunicationPort, serialNumber string) (map[string
 	return result, err
 }
 
-func readData(rr RegisterRange, connPort ports.CommunicationPort, serialNumber string) (map[string]interface{}, error) {
+func readData(rr RegisterRange, connPort ports.CommunicationPort, serialNumber uint) (map[string]interface{}, error) {
 
 	lswRequest := NewLSWRequest(serialNumber, rr.start, rr.end)
 
@@ -152,6 +138,7 @@ func readData(rr RegisterRange, connPort ports.CommunicationPort, serialNumber s
 	if err != nil {
 		return nil, err
 	}
+
 	// truncate the buffer
 	buf = buf[:n]
 	if len(buf) < 48 {

@@ -1,8 +1,8 @@
-FROM ubuntu:focal
+FROM golang:1.19-bullseye
 
-RUN apt update && apt install -y ca-certificates tzdata
+ADD . /src
 
-ADD sofar /
-RUN chmod +x /sofar
+RUN apt update && apt install -y ca-certificates tzdata && \
+  cd /src && go build && cp -av /src/sofar /
 
 CMD ["/sofar"]

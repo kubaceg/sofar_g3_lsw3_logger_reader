@@ -1,0 +1,8 @@
+services:
+  sofar-export:
+    image: sofar-export
+    build: ./
+    restart: unless-stopped
+    command: /sofar
+    volumes:
+    - "config.yaml:/config.yaml"

@@ -83,6 +83,16 @@ var rrPVGeneration = RegisterRange{
 		{0x686, "PV_Generation_Total", "U32", "0.1", "kWh"},
 	},
 }
+var rrBatCharge = RegisterRange{
+	start: 0x680,
+	end:   0x69B,
+	replyFields: []Field{
+		{0x694, "Bat_Charge_Today", "U32", "0.01", "kWh"},
+		{0x696, "Bat_Charge_Total", "U32", "0.1", "kWh"},
+		{0x698, "Bat_Discharge_Today", "U32", "0.01", "kWh"},
+		{0x69A, "Bat_Discharge_Total", "U32", "0.1", "kWh"},
+	},
+}
 var rrPVOutput = RegisterRange{
 	start: 0x580,
 	end:   0x589,
@@ -156,5 +166,26 @@ var rrGridOutput = RegisterRange{
 		{0x04BA, "Voltage_Line_L1", "U16", "0.1", "V"},
 		{0x04BB, "Voltage_Line_L2", "U16", "0.1", "V"},
 		{0x04BC, "Voltage_Line_L3", "U16", "0.1", "V"},
+	},
+}
+
+var rrBatOutput = RegisterRange{
+	start: 0x600,
+	end:   0x611,
+	replyFields: []Field{
+		{0x0604, "Voltage_Bat1", "U16", "0.1", "V"},
+		{0x0605, "Current_Bat1", "U16", "0.01", "A"},
+		{0x0606, "Power_Bat1", "U16", "0.01", "kW"},
+		{0x0607, "Temperature_Env_Bat1", "I16", "1", "℃"},
+		{0x0608, "SOC_Bat1", "U16", "1", "%"},
+		{0x0609, "SOH_Bat1", "U16", "1", "%"},
+		{0x060A, "ChargeCycle_Bat1", "U16", "1", ""},
+		{0x060B, "Voltage_Bat2", "U16", "0.1", "V"},
+		{0x060C, "Current_Bat2", "U16", "0.01", "A"},
+		{0x060D, "Power_Bat2", "U16", "0.01", "kW"},
+		{0x060E, "Temperature_Env_Bat2", "I16", "1", "℃"},
+		{0x060F, "SOC_Bat2", "U16", "1", "%"},
+		{0x0610, "SOH_Bat2", "U16", "1", "%"},
+		{0x0611, "ChargeCycle_Bat2", "U16", "1", ""},
 	},
 }

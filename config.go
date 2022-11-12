@@ -4,7 +4,7 @@ import (
 	"errors"
 	"os"
 
-	"github.com/kubaceg/sofar_g3_lsw3_logger_reader/adapters/databases/mosquitto"
+	"github.com/icez/sofar_g3_lsw3_logger_reader/adapters/databases/mosquitto"
 	"gopkg.in/yaml.v2"
 )
 

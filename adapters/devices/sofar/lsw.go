@@ -4,7 +4,7 @@ import (
 	"encoding/binary"
 	"fmt"
 
-	"github.com/kubaceg/sofar_g3_lsw3_logger_reader/ports"
+	"github.com/icez/sofar_g3_lsw3_logger_reader/ports"
 	"github.com/sigurn/crc16"
 )
 
@@ -102,6 +102,24 @@ func ReadData(connPort ports.CommunicationPort, serialNumber uint) (map[string]i
 	}
 
 	reply, err = readData(rrSystemInfo, connPort, serialNumber)
+	if err != nil {
+		return nil, err
+	}
+
+	for k, v := range reply {
+		result[k] = v
+	}
+
+	reply, err = readData(rrBatOutput, connPort, serialNumber)
+	if err != nil {
+		return nil, err
+	}
+
+	for k, v := range reply {
+		result[k] = v
+	}
+
+	reply, err = readData(rrBatCharge, connPort, serialNumber)
 	if err != nil {
 		return nil, err
 	}

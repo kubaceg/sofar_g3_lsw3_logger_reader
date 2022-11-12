@@ -1,4 +1,4 @@
-module github.com/kubaceg/sofar_g3_lsw3_logger_reader
+module github.com/icez/sofar_g3_lsw3_logger_reader
 
 go 1.19
 

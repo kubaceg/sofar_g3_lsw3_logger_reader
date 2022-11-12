@@ -8,14 +8,14 @@ import (
 	"net/http"
 	_ "net/http/pprof"
 
-	"github.com/kubaceg/sofar_g3_lsw3_logger_reader/adapters/comms/serial"
-	"github.com/kubaceg/sofar_g3_lsw3_logger_reader/adapters/comms/tcpip"
-	"github.com/kubaceg/sofar_g3_lsw3_logger_reader/adapters/databases/httpnow"
-	"github.com/kubaceg/sofar_g3_lsw3_logger_reader/adapters/databases/mosquitto"
-	"github.com/kubaceg/sofar_g3_lsw3_logger_reader/adapters/devices/sofar"
+	"github.com/icez/sofar_g3_lsw3_logger_reader/adapters/comms/serial"
+	"github.com/icez/sofar_g3_lsw3_logger_reader/adapters/comms/tcpip"
+	"github.com/icez/sofar_g3_lsw3_logger_reader/adapters/databases/httpnow"
+	"github.com/icez/sofar_g3_lsw3_logger_reader/adapters/databases/mosquitto"
+	"github.com/icez/sofar_g3_lsw3_logger_reader/adapters/devices/sofar"
 	gser "go.bug.st/serial"
 
-	"github.com/kubaceg/sofar_g3_lsw3_logger_reader/ports"
+	"github.com/icez/sofar_g3_lsw3_logger_reader/ports"
 )
 
 var (

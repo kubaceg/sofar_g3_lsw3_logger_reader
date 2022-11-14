@@ -16,6 +16,10 @@ import (
 	"github.com/kubaceg/sofar_g3_lsw3_logger_reader/ports"
 )
 
+// maximumFailedConnections maximum number failed logger connection, after this number will be exceeded reconnect
+// interval will be extended from 5s to readInterval defined in config file
+const maximumFailedConnections = 3
+
 var (
 	config *Config
 	port   ports.CommunicationPort
@@ -55,6 +59,7 @@ func initialize() {
 
 func main() {
 	initialize()
+	failedConnections := 0
 
 	for {
 		log.Printf("performing measurements")
@@ -63,9 +68,16 @@ func main() {
 		measurements, err := device.Query()
 		if err != nil {
 			log.Printf("failed to perform measurements: %s", err)
-			time.Sleep(5 * time.Second)
+			failedConnections++
+
+			if failedConnections > maximumFailedConnections {
+				time.Sleep(time.Duration(config.Inverter.ReadInterval) * time.Second)
+			}
+
 			continue
 		}
+
+		failedConnections = 0
 
 		if hasMQTT {
 			err = mqtt.InsertRecord(measurements)

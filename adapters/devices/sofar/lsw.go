@@ -110,6 +110,24 @@ func ReadData(connPort ports.CommunicationPort, serialNumber uint) (map[string]i
 		result[k] = v
 	}
 
+	reply, err = readData(rrBatOutput, connPort, serialNumber)
+	if err != nil {
+		return nil, err
+	}
+
+	for k, v := range reply {
+		result[k] = v
+	}
+
+	reply, err = readData(rrBatCharge, connPort, serialNumber)
+	if err != nil {
+		return nil, err
+	}
+
+	for k, v := range reply {
+		result[k] = v
+	}
+
 	return result, err
 }
 

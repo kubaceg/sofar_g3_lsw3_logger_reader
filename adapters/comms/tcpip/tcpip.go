@@ -9,6 +9,8 @@ import (
 	"github.com/kubaceg/sofar_g3_lsw3_logger_reader/ports"
 )
 
+const timeout = 20 * time.Second
+
 type tcpIpPort struct {
 	name string
 	conn net.Conn
@@ -50,6 +52,11 @@ func (s *tcpIpPort) Read(buf []byte) (int, error) {
 	}
 
 	reader := bufio.NewReader(s.conn)
+
+	if err := s.conn.SetReadDeadline(time.Now().Add(timeout)); err != nil {
+		return 0, err
+	}
+
 	return reader.Read(buf)
 }
 
@@ -57,20 +64,9 @@ func (s *tcpIpPort) Write(payload []byte) (int, error) {
 	if s.conn == nil {
 		return 0, fmt.Errorf("connection is not open")
 	}
-	s.conn.SetWriteDeadline(time.Now().Add(20 * time.Second))
+	if err := s.conn.SetWriteDeadline(time.Now().Add(timeout)); err != nil {
+		return 0, err
+	}
+
 	return s.conn.Write(payload)
-}
-
-func (s *tcpIpPort) SetWriteDeadline(t time.Time) error {
-	if s.conn == nil {
-		return fmt.Errorf("connection is not open")
-	}
-	return s.conn.SetWriteDeadline(t)
-}
-
-func (s *tcpIpPort) SetReadDeadline(t time.Time) error {
-	if s.conn == nil {
-		return fmt.Errorf("connection is not open")
-	}
-	return s.conn.SetReadDeadline(t)
 }

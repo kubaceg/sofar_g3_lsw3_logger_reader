@@ -16,7 +16,7 @@ type MqttConfig struct {
 	Prefix   string `yaml:"prefix"`
 }
 
-type MosquittoConnection struct {
+type Connection struct {
 	client mqtt.Client
 	prefix string
 }
@@ -29,7 +29,7 @@ var connectLostHandler mqtt.ConnectionLostHandler = func(client mqtt.Client, err
 	log.Printf("Connect lost: %v", err)
 }
 
-func New(config *MqttConfig) (*MosquittoConnection, error) {
+func New(config *MqttConfig) (*Connection, error) {
 	opts := mqtt.NewClientOptions()
 	opts.AddBroker(config.Url)
 	opts.SetClientID("sofar")
@@ -44,7 +44,7 @@ func New(config *MqttConfig) (*MosquittoConnection, error) {
 		opts.SetPassword(config.Password)
 	}
 
-	conn := &MosquittoConnection{}
+	conn := &Connection{}
 	conn.client = mqtt.NewClient(opts)
 	conn.prefix = config.Prefix
 	if token := conn.client.Connect(); token.Wait() && token.Error() != nil {
@@ -55,7 +55,7 @@ func New(config *MqttConfig) (*MosquittoConnection, error) {
 
 }
 
-func (conn *MosquittoConnection) InsertRecord(measurement map[string]interface{}) error {
+func (conn *Connection) InsertRecord(measurement map[string]interface{}) error {
 	measurementCopy := make(map[string]interface{}, len(measurement))
 	for k, v := range measurement {
 		measurementCopy[k] = v
@@ -79,6 +79,6 @@ func (conn *MosquittoConnection) InsertRecord(measurement map[string]interface{}
 	return nil
 }
 
-func (conn *MosquittoConnection) Subscribe(topic string, callback mqtt.MessageHandler) {
+func (conn *Connection) Subscribe(topic string, callback mqtt.MessageHandler) {
 	conn.client.Subscribe(topic, 0, callback)
 }

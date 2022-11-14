@@ -2,29 +2,25 @@ package main
 
 import (
 	"log"
+	_ "net/http/pprof"
 	"strings"
 	"time"
 
-	"net/http"
-	_ "net/http/pprof"
+	gser "go.bug.st/serial"
 
 	"github.com/kubaceg/sofar_g3_lsw3_logger_reader/adapters/comms/serial"
 	"github.com/kubaceg/sofar_g3_lsw3_logger_reader/adapters/comms/tcpip"
-	"github.com/kubaceg/sofar_g3_lsw3_logger_reader/adapters/databases/httpnow"
 	"github.com/kubaceg/sofar_g3_lsw3_logger_reader/adapters/databases/mosquitto"
 	"github.com/kubaceg/sofar_g3_lsw3_logger_reader/adapters/devices/sofar"
-	gser "go.bug.st/serial"
 
 	"github.com/kubaceg/sofar_g3_lsw3_logger_reader/ports"
 )
 
 var (
-	config             *Config
-	port               ports.CommunicationPort
-	mqtt               ports.DatabaseWithListener
-	nowDB              ports.Database
-	device             ports.Device
-	lastDateTimeUpdate time.Time
+	config *Config
+	port   ports.CommunicationPort
+	mqtt   ports.DatabaseWithListener
+	device ports.Device
 
 	hasMQTT bool
 )
@@ -55,13 +51,6 @@ func initialize() {
 	}
 
 	device = sofar.NewSofarLogger(config.Inverter.LoggerSerial, port)
-
-	nowDB = httpnow.NewHttpNow(8081)
-
-	go func() {
-		log.Println(http.ListenAndServe("localhost:6060", nil))
-	}()
-
 }
 
 func main() {
@@ -84,8 +73,6 @@ func main() {
 				log.Printf("failed to insert record to MQTT: %s", err)
 			}
 		}
-
-		nowDB.InsertRecord(measurements)
 
 		duration := time.Since(timeStart)
 

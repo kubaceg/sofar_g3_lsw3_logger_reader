@@ -3,9 +3,11 @@ package sofar
 import (
 	"encoding/binary"
 	"fmt"
+	"log"
+
+	"github.com/sigurn/crc16"
 
 	"github.com/kubaceg/sofar_g3_lsw3_logger_reader/ports"
-	"github.com/sigurn/crc16"
 )
 
 type LSWRequest struct {
@@ -71,10 +73,10 @@ func (l LSWRequest) checksum(buf []byte) uint8 {
 	return checksum
 }
 
-func ReadData(connPort ports.CommunicationPort, serialNumber uint) (map[string]interface{}, error) {
+func readData(connPort ports.CommunicationPort, serialNumber uint) (map[string]interface{}, error) {
 	result := make(map[string]interface{})
 
-	reply, err := readData(rrGridOutput, connPort, serialNumber)
+	reply, err := readRegisterRange(rrGridOutput, connPort, serialNumber)
 	if err != nil {
 		return nil, err
 	}
@@ -83,7 +85,7 @@ func ReadData(connPort ports.CommunicationPort, serialNumber uint) (map[string]i
 		result[k] = v
 	}
 
-	reply, err = readData(rrPVOutput, connPort, serialNumber)
+	reply, err = readRegisterRange(rrPVOutput, connPort, serialNumber)
 	if err != nil {
 		return nil, err
 	}
@@ -92,7 +94,7 @@ func ReadData(connPort ports.CommunicationPort, serialNumber uint) (map[string]i
 		result[k] = v
 	}
 
-	reply, err = readData(rrPVGeneration, connPort, serialNumber)
+	reply, err = readRegisterRange(rrPVGeneration, connPort, serialNumber)
 	if err != nil {
 		return nil, err
 	}
@@ -101,7 +103,7 @@ func ReadData(connPort ports.CommunicationPort, serialNumber uint) (map[string]i
 		result[k] = v
 	}
 
-	reply, err = readData(rrSystemInfo, connPort, serialNumber)
+	reply, err = readRegisterRange(rrSystemInfo, connPort, serialNumber)
 	if err != nil {
 		return nil, err
 	}
@@ -131,8 +133,7 @@ func ReadData(connPort ports.CommunicationPort, serialNumber uint) (map[string]i
 	return result, err
 }
 
-func readData(rr RegisterRange, connPort ports.CommunicationPort, serialNumber uint) (map[string]interface{}, error) {
-
+func readRegisterRange(rr registerRange, connPort ports.CommunicationPort, serialNumber uint) (map[string]interface{}, error) {
 	lswRequest := NewLSWRequest(serialNumber, rr.start, rr.end)
 
 	commandBytes := lswRequest.ToBytes()
@@ -142,7 +143,11 @@ func readData(rr RegisterRange, connPort ports.CommunicationPort, serialNumber u
 		return nil, err
 	}
 
-	defer connPort.Close()
+	defer func(connPort ports.CommunicationPort) {
+		if err := connPort.Close(); err != nil {
+			log.Printf("error during connection close: %s", err)
+		}
+	}(connPort)
 
 	// send the command
 	_, err = connPort.Write(commandBytes)
@@ -191,5 +196,4 @@ func readData(rr RegisterRange, connPort ports.CommunicationPort, serialNumber u
 	}
 
 	return reply, nil
-
 }

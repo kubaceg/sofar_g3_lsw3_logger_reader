@@ -1,6 +1,6 @@
 package sofar
 
-type Field struct {
+type field struct {
 	register  int
 	name      string
 	valueType string
@@ -8,16 +8,16 @@ type Field struct {
 	unit      string
 }
 
-type RegisterRange struct {
+type registerRange struct {
 	start       int
 	end         int
-	replyFields []Field
+	replyFields []field
 }
 
-var rrSystemInfo = RegisterRange{
+var rrSystemInfo = registerRange{
 	start: 0x400,
 	end:   0x43a,
-	replyFields: []Field{
+	replyFields: []field{
 		{0x0404, "SysState", "U16", "", ""},
 		{0x0405, "Fault1", "U16", "", ""},
 		{0x0406, "Fault2", "U16", "", ""},
@@ -75,15 +75,16 @@ var rrSystemInfo = RegisterRange{
 		{0x043A, "Fault27", "U16", "", ""},
 	},
 }
-var rrPVGeneration = RegisterRange{
+var rrPVGeneration = registerRange{
 	start: 0x680,
 	end:   0x687,
-	replyFields: []Field{
+	replyFields: []field{
 		{0x684, "PV_Generation_Today", "U32", "0.01", "kWh"},
 		{0x686, "PV_Generation_Total", "U32", "0.1", "kWh"},
 	},
 }
-var rrBatCharge = RegisterRange{
+
+var rrBatCharge = registerRange{
 	start: 0x680,
 	end:   0x69B,
 	replyFields: []Field{
@@ -93,10 +94,11 @@ var rrBatCharge = RegisterRange{
 		{0x69A, "Bat_Discharge_Total", "U32", "0.1", "kWh"},
 	},
 }
-var rrPVOutput = RegisterRange{
+
+var rrPVOutput = registerRange{
 	start: 0x580,
 	end:   0x589,
-	replyFields: []Field{
+	replyFields: []field{
 		{0x0584, "Voltage_PV1", "U16", "0.1", "V"},
 		{0x0585, "Current_PV1", "U16", "0.01", "A"},
 		{0x0586, "Power_PV1", "U16", "0.01", "kW"},
@@ -105,10 +107,10 @@ var rrPVOutput = RegisterRange{
 		{0x0589, "Power_PV2", "U16", "0.01", "kW"},
 	},
 }
-var rrGridOutput = RegisterRange{
+var rrGridOutput = registerRange{
 	start: 0x480,
 	end:   0x4bc,
-	replyFields: []Field{
+	replyFields: []field{
 		{0x0484, "Frequency_Grid", "U16", "0.01", "Hz"},
 		{0x0485, "ActivePower_Output_Total", "I16", "0.01", "kW"},
 		{0x0486, "ReactivePower_Output_Total", "I16", "0.01", "kW"},

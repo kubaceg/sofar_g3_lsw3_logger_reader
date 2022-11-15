@@ -6,4 +6,4 @@ mqtt:
   url: 1.2.3.4:5678 #MQTT broker URL (e.g. 1.2.3.4:5678)
   user: #MQTT username (leave empty when not needed)
   password: #MQTT password (leave empty when not needed)
-  prefix: /sensors/energy/inverter #topic on which data will be sended
+  prefix: /sensors/energy/inverter #topic prefix on which data will be sent

@@ -112,7 +112,7 @@ func readData(connPort ports.CommunicationPort, serialNumber uint) (map[string]i
 		result[k] = v
 	}
 
-	reply, err = readData(rrBatOutput, connPort, serialNumber)
+	reply, err = readRegisterRange(rrBatOutput, connPort, serialNumber)
 	if err != nil {
 		return nil, err
 	}
@@ -121,7 +121,7 @@ func readData(connPort ports.CommunicationPort, serialNumber uint) (map[string]i
 		result[k] = v
 	}
 
-	reply, err = readData(rrBatCharge, connPort, serialNumber)
+	reply, err = readRegisterRange(rrBatCharge, connPort, serialNumber)
 	if err != nil {
 		return nil, err
 	}

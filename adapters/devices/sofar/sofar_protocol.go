@@ -87,7 +87,7 @@ var rrPVGeneration = registerRange{
 var rrBatCharge = registerRange{
 	start: 0x680,
 	end:   0x69B,
-	replyFields: []Field{
+	replyFields: []field{
 		{0x694, "Bat_Charge_Today", "U32", "0.01", "kWh"},
 		{0x696, "Bat_Charge_Total", "U32", "0.1", "kWh"},
 		{0x698, "Bat_Discharge_Today", "U32", "0.01", "kWh"},
@@ -171,10 +171,10 @@ var rrGridOutput = registerRange{
 	},
 }
 
-var rrBatOutput = RegisterRange{
+var rrBatOutput = registerRange{
 	start: 0x600,
 	end:   0x611,
-	replyFields: []Field{
+	replyFields: []field{
 		{0x0604, "Voltage_Bat1", "U16", "0.1", "V"},
 		{0x0605, "Current_Bat1", "I16", "0.01", "A"},
 		{0x0606, "Power_Bat1", "I16", "0.01", "kW"},

@@ -13,6 +13,8 @@ jobs:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         goos: linux
         goarch: amd64
+        compress_assets: OFF
+        md5sum: FALSE
   
   release-linux-arm:
     name: release linux/arm
@@ -24,3 +26,5 @@ jobs:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         goos: linux
         goarch: arm
+        compress_assets: OFF
+        md5sum: FALSE

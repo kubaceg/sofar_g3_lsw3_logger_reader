@@ -121,10 +121,6 @@ func readData(connPort ports.CommunicationPort, serialNumber uint) (map[string]i
 		result[k] = v
 	}
 
-	for k, v := range reply {
-		result[k] = v
-	}
-
 	reply, err = readRegisterRange(rrRatio, connPort, serialNumber)
 	if err != nil {
 		return nil, err

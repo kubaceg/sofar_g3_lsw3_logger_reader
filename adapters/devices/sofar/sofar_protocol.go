@@ -75,19 +75,18 @@ var rrSystemInfo = registerRange{
 		{0x043A, "Fault27", "U16", "", ""},
 	},
 }
-var rrPVGeneration = registerRange{
-	start: 0x680,
-	end:   0x687,
-	replyFields: []field{
-		{0x684, "PV_Generation_Today", "U32", "0.01", "kWh"},
-		{0x686, "PV_Generation_Total", "U32", "0.1", "kWh"},
-	},
-}
-
-var rrBatCharge = registerRange{
+var rrEnergyTodayTotals = registerRange{
 	start: 0x680,
 	end:   0x69B,
 	replyFields: []field{
+		{0x684, "PV_Generation_Today", "U32", "0.01", "kWh"},
+		{0x686, "PV_Generation_Total", "U32", "0.1", "kWh"},
+		{0x688, "Load_Consumption_Today", "U32", "0.1", "kWh"},
+		{0x68A, "Load_Consumption_Total", "U32", "0.1", "kWh"},
+		{0x68C, "Energy_Purchase_Today", "U32", "0.1", "kWh"},
+		{0x68E, "Energy_Purchase_Total", "U32", "0.1", "kWh"},
+		{0x690, "Energy_Selling_Today", "U32", "0.1", "kWh"},
+		{0x692, "Energy_Selling_Total", "U32", "0.1", "kWh"},
 		{0x694, "Bat_Charge_Today", "U32", "0.01", "kWh"},
 		{0x696, "Bat_Charge_Total", "U32", "0.1", "kWh"},
 		{0x698, "Bat_Discharge_Today", "U32", "0.01", "kWh"},
@@ -189,5 +188,17 @@ var rrBatOutput = registerRange{
 		{0x060F, "SOC_Bat2", "U16", "1", "%"},
 		{0x0610, "SOH_Bat2", "U16", "1", "%"},
 		{0x0611, "ChargeCycle_Bat2", "U16", "1", ""},
+	},
+}
+
+var rrRatio = registerRange{
+	start: 0x1030,
+	end:   0x103D,
+	replyFields: []field{
+		{0x1039, "PV_Generation_Ratio", "U16", "0.001", ""},
+		{0x103A, "Energy_Purchase_Ratio", "U16", "0.001", ""},
+		{0x103B, "Energy_Selling_Ratio", "U16", "0.001", ""},
+		{0x103C, "Bat_Charge_Ratio", "U16", "0.001", ""},
+		{0x103D, "Bat_Discharge_Ratio", "U16", "0.001", ""},
 	},
 }

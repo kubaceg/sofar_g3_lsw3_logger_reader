@@ -94,7 +94,7 @@ func readData(connPort ports.CommunicationPort, serialNumber uint) (map[string]i
 		result[k] = v
 	}
 
-	reply, err = readRegisterRange(rrPVGeneration, connPort, serialNumber)
+	reply, err = readRegisterRange(rrEnergyTodayTotals, connPort, serialNumber)
 	if err != nil {
 		return nil, err
 	}
@@ -121,7 +121,7 @@ func readData(connPort ports.CommunicationPort, serialNumber uint) (map[string]i
 		result[k] = v
 	}
 
-	reply, err = readRegisterRange(rrBatCharge, connPort, serialNumber)
+	reply, err = readRegisterRange(rrRatio, connPort, serialNumber)
 	if err != nil {
 		return nil, err
 	}

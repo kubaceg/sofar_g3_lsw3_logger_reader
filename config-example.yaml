@@ -7,3 +7,8 @@ mqtt:
   user: #MQTT username (leave empty when not needed)
   password: #MQTT password (leave empty when not needed)
   prefix: /sensors/energy/inverter #topic prefix on which data will be sent
+otlp:
+  grpc:
+    url: 0.0.0.0:4317 #URL for gRPC OTLP server
+  http:
+    url: 0.0.0.0:4318 #URL for HTTP OLTP server

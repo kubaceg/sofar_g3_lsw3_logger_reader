@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	_ "net/http/pprof"
 	"strings"
@@ -10,8 +11,9 @@ import (
 
 	"github.com/kubaceg/sofar_g3_lsw3_logger_reader/adapters/comms/serial"
 	"github.com/kubaceg/sofar_g3_lsw3_logger_reader/adapters/comms/tcpip"
-	"github.com/kubaceg/sofar_g3_lsw3_logger_reader/adapters/databases/mosquitto"
 	"github.com/kubaceg/sofar_g3_lsw3_logger_reader/adapters/devices/sofar"
+	"github.com/kubaceg/sofar_g3_lsw3_logger_reader/adapters/export/mosquitto"
+	"github.com/kubaceg/sofar_g3_lsw3_logger_reader/adapters/export/otlp"
 
 	"github.com/kubaceg/sofar_g3_lsw3_logger_reader/ports"
 )
@@ -25,8 +27,10 @@ var (
 	port   ports.CommunicationPort
 	mqtt   ports.DatabaseWithListener
 	device ports.Device
+	telem  *otlp.Service
 
 	hasMQTT bool
+	hasOTLP bool
 )
 
 func initialize() {
@@ -37,6 +41,7 @@ func initialize() {
 	}
 
 	hasMQTT = config.Mqtt.Url != "" && config.Mqtt.Prefix != ""
+	hasOTLP = config.Otlp.Grpc.Url != "" || config.Otlp.Http.Url != ""
 
 	if isSerialPort(config.Inverter.Port) {
 		port = serial.New(config.Inverter.Port, 2400, 8, gser.NoParity, gser.OneStopBit)
@@ -52,6 +57,13 @@ func initialize() {
 			log.Fatalf("MQTT connection failed: %s", err)
 		}
 
+	}
+
+	if hasOTLP {
+		telem, err = otlp.New(&config.Otlp)
+		if err != nil {
+			log.Fatalf("error initializating otlp connection: %s", err)
+		}
 	}
 
 	device = sofar.NewSofarLogger(config.Inverter.LoggerSerial, port)
@@ -80,10 +92,25 @@ func main() {
 		failedConnections = 0
 
 		if hasMQTT {
-			err = mqtt.InsertRecord(measurements)
-			if err != nil {
-				log.Printf("failed to insert record to MQTT: %s", err)
-			}
+			go func() {
+				err = mqtt.InsertRecord(measurements)
+				if err != nil {
+					log.Printf("failed to insert record to MQTT: %s", err)
+				} else {
+					log.Println("measurements pushed to MQTT")
+				}
+			}()
+		}
+
+		if hasOTLP {
+			go func() {
+				err = telem.CollectAndPushMetrics(context.Background(), measurements)
+				if err != nil {
+					log.Printf("error recording telemetry: %s", err)
+				} else {
+					log.Println("measurements pushed via OLTP")
+				}
+			}()
 		}
 
 		duration := time.Since(timeStart)

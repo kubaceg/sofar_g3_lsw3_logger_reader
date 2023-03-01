@@ -104,7 +104,7 @@ func main() {
 
 		if hasOTLP {
 			go func() {
-				err = telem.CollectAndPushMetrics(context.Background(), measurements)
+				err = telem.CollectAndPushMetrics(context.Background())
 				if err != nil {
 					log.Printf("error recording telemetry: %s", err)
 				} else {

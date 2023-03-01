@@ -116,7 +116,7 @@ func (s *Service) createGauge(n string) *instrument.Int64ObservableGauge {
 }
 
 // CollectAndPushMetrics triggers the collection and export of metrics over OTLP
-func (s *Service) CollectAndPushMetrics(ctx context.Context, measurements map[string]interface{}) error {
+func (s *Service) CollectAndPushMetrics(ctx context.Context) error {
 	err := s.collectAndPushMetrics(ctx)
 	if err != nil {
 		return err

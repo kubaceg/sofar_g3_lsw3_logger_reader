@@ -155,16 +155,13 @@ func newResource() *resource.Resource {
 }
 
 func convertToInt64(v interface{}) int64 {
-	switch v.(type) {
+	switch i := v.(type) {
 	case uint32:
-		u := v.(uint32)
-		return int64(u)
+		return int64(i)
 	case uint16:
-		u := v.(uint16)
-		return int64(u)
+		return int64(i)
 	case int16:
-		u := v.(int16)
-		return int64(u)
+		return int64(i)
 	default:
 		fmt.Println("unexpected type encountered")
 		return 0

@@ -2,8 +2,8 @@ package sofar
 
 type field struct {
 	register  int
-	name      string
-	valueType string
+	Name      string
+	ValueType string
 	factor    string
 	unit      string
 }
@@ -11,13 +11,13 @@ type field struct {
 type registerRange struct {
 	start       int
 	end         int
-	replyFields []field
+	ReplyFields []field
 }
 
 var rrSystemInfo = registerRange{
 	start: 0x400,
 	end:   0x43a,
-	replyFields: []field{
+	ReplyFields: []field{
 		{0x0404, "SysState", "U16", "", ""},
 		{0x0405, "Fault1", "U16", "", ""},
 		{0x0406, "Fault2", "U16", "", ""},
@@ -78,7 +78,7 @@ var rrSystemInfo = registerRange{
 var rrPVGeneration = registerRange{
 	start: 0x680,
 	end:   0x687,
-	replyFields: []field{
+	ReplyFields: []field{
 		{0x684, "PV_Generation_Today", "U32", "0.01", "kWh"},
 		{0x686, "PV_Generation_Total", "U32", "0.1", "kWh"},
 	},
@@ -87,7 +87,7 @@ var rrPVGeneration = registerRange{
 var rrBatCharge = registerRange{
 	start: 0x680,
 	end:   0x69B,
-	replyFields: []field{
+	ReplyFields: []field{
 		{0x694, "Bat_Charge_Today", "U32", "0.01", "kWh"},
 		{0x696, "Bat_Charge_Total", "U32", "0.1", "kWh"},
 		{0x698, "Bat_Discharge_Today", "U32", "0.01", "kWh"},
@@ -98,7 +98,7 @@ var rrBatCharge = registerRange{
 var rrPVOutput = registerRange{
 	start: 0x580,
 	end:   0x589,
-	replyFields: []field{
+	ReplyFields: []field{
 		{0x0584, "Voltage_PV1", "U16", "0.1", "V"},
 		{0x0585, "Current_PV1", "U16", "0.01", "A"},
 		{0x0586, "Power_PV1", "U16", "0.01", "kW"},
@@ -110,7 +110,7 @@ var rrPVOutput = registerRange{
 var rrGridOutput = registerRange{
 	start: 0x480,
 	end:   0x4bc,
-	replyFields: []field{
+	ReplyFields: []field{
 		{0x0484, "Frequency_Grid", "U16", "0.01", "Hz"},
 		{0x0485, "ActivePower_Output_Total", "I16", "0.01", "kW"},
 		{0x0486, "ReactivePower_Output_Total", "I16", "0.01", "kW"},
@@ -174,7 +174,7 @@ var rrGridOutput = registerRange{
 var rrBatOutput = registerRange{
 	start: 0x600,
 	end:   0x611,
-	replyFields: []field{
+	ReplyFields: []field{
 		{0x0604, "Voltage_Bat1", "U16", "0.1", "V"},
 		{0x0605, "Current_Bat1", "I16", "0.01", "A"},
 		{0x0606, "Power_Bat1", "I16", "0.01", "kW"},

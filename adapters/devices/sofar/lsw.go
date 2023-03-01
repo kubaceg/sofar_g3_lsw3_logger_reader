@@ -16,6 +16,8 @@ type LSWRequest struct {
 	endRegister   int
 }
 
+var lastReading map[string]interface{}
+
 func NewLSWRequest(serialNumber uint, startRegister int, endRegister int) LSWRequest {
 	return LSWRequest{
 		serialNumber:  serialNumber,
@@ -73,64 +75,34 @@ func (l LSWRequest) checksum(buf []byte) uint8 {
 	return checksum
 }
 
+var AllRegisterRanges = []registerRange{
+	rrGridOutput,
+	rrPVOutput,
+	rrPVGeneration,
+	rrSystemInfo,
+	rrBatOutput,
+	rrBatCharge,
+}
+
 func readData(connPort ports.CommunicationPort, serialNumber uint) (map[string]interface{}, error) {
 	result := make(map[string]interface{})
 
-	reply, err := readRegisterRange(rrGridOutput, connPort, serialNumber)
-	if err != nil {
-		return nil, err
-	}
+	for _, rr := range AllRegisterRanges {
+		reply, err := readRegisterRange(rr, connPort, serialNumber)
+		if err != nil {
+			return nil, err
+		}
 
-	for k, v := range reply {
-		result[k] = v
+		for k, v := range reply {
+			result[k] = v
+		}
 	}
+	lastReading = result
+	return result, nil
+}
 
-	reply, err = readRegisterRange(rrPVOutput, connPort, serialNumber)
-	if err != nil {
-		return nil, err
-	}
-
-	for k, v := range reply {
-		result[k] = v
-	}
-
-	reply, err = readRegisterRange(rrPVGeneration, connPort, serialNumber)
-	if err != nil {
-		return nil, err
-	}
-
-	for k, v := range reply {
-		result[k] = v
-	}
-
-	reply, err = readRegisterRange(rrSystemInfo, connPort, serialNumber)
-	if err != nil {
-		return nil, err
-	}
-
-	for k, v := range reply {
-		result[k] = v
-	}
-
-	reply, err = readRegisterRange(rrBatOutput, connPort, serialNumber)
-	if err != nil {
-		return nil, err
-	}
-
-	for k, v := range reply {
-		result[k] = v
-	}
-
-	reply, err = readRegisterRange(rrBatCharge, connPort, serialNumber)
-	if err != nil {
-		return nil, err
-	}
-
-	for k, v := range reply {
-		result[k] = v
-	}
-
-	return result, err
+func GetLastReading() map[string]interface{} {
+	return lastReading
 }
 
 func readRegisterRange(rr registerRange, connPort ports.CommunicationPort, serialNumber uint) (map[string]interface{}, error) {
@@ -176,7 +148,7 @@ func readRegisterRange(rr registerRange, connPort ports.CommunicationPort, seria
 	// shove the data into the reply
 	reply := make(map[string]interface{})
 
-	for _, f := range rr.replyFields {
+	for _, f := range rr.ReplyFields {
 		fieldOffset := (f.register - rr.start) * 2
 
 		if fieldOffset > len(modbusReply)-2 {
@@ -184,13 +156,13 @@ func readRegisterRange(rr registerRange, connPort ports.CommunicationPort, seria
 			continue
 		}
 
-		switch f.valueType {
+		switch f.ValueType {
 		case "U16":
-			reply[f.name] = binary.BigEndian.Uint16(modbusReply[fieldOffset : fieldOffset+2])
+			reply[f.Name] = binary.BigEndian.Uint16(modbusReply[fieldOffset : fieldOffset+2])
 		case "U32":
-			reply[f.name] = binary.BigEndian.Uint32(modbusReply[fieldOffset : fieldOffset+4])
+			reply[f.Name] = binary.BigEndian.Uint32(modbusReply[fieldOffset : fieldOffset+4])
 		case "I16":
-			reply[f.name] = int16(binary.BigEndian.Uint16(modbusReply[fieldOffset : fieldOffset+2]))
+			reply[f.Name] = int16(binary.BigEndian.Uint16(modbusReply[fieldOffset : fieldOffset+2]))
 		default:
 		}
 	}

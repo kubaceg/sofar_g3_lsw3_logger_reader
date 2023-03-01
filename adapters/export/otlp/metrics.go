@@ -75,6 +75,7 @@ func New(c *Config) (*Service, error) {
 	return &s, nil
 }
 
+// initGauges creates Int64 gauges for all reply fields that will be read
 func (s *Service) initGauges() error {
 	for _, rr := range sofar.AllRegisterRanges {
 		for _, f := range rr.ReplyFields {
@@ -87,6 +88,7 @@ func (s *Service) initGauges() error {
 			name := f.Name
 			g := s.createGauge(name)
 			_, err := s.m.RegisterCallback(
+				// this function is called when a collection is triggered
 				func(ctx context.Context, o metric.Observer) error {
 					measurements := sofar.GetLastReading()
 					if v, ok := measurements[name]; ok {
@@ -105,6 +107,15 @@ func (s *Service) initGauges() error {
 	return nil
 }
 
+func (s *Service) createGauge(n string) *instrument.Int64ObservableGauge {
+	newGauge, _ := s.m.Int64ObservableGauge(
+		appName+"."+n,
+		instrument.WithUnit("1"),
+	)
+	return &newGauge
+}
+
+// CollectAndPushMetrics triggers the collection and export of metrics over OTLP
 func (s *Service) CollectAndPushMetrics(ctx context.Context, measurements map[string]interface{}) error {
 	err := s.collectAndPushMetrics(ctx)
 	if err != nil {
@@ -112,14 +123,6 @@ func (s *Service) CollectAndPushMetrics(ctx context.Context, measurements map[st
 	}
 
 	return nil
-}
-
-func (s *Service) createGauge(n string) *instrument.Int64ObservableGauge {
-	newGauge, _ := s.m.Int64ObservableGauge(
-		appName+"."+n,
-		instrument.WithUnit("1"),
-	)
-	return &newGauge
 }
 
 func (s *Service) collectAndPushMetrics(ctx context.Context) error {

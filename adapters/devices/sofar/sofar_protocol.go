@@ -2,7 +2,7 @@ package sofar
 
 type field struct {
 	register  int
-	Name      string
+	Name      string // Need to read names to create gauges on startup
 	ValueType string
 	factor    string
 	unit      string

@@ -16,6 +16,8 @@ type LSWRequest struct {
 	endRegister   int
 }
 
+// lastReading stores the last measurement key values.
+// Not implementing mutex locks since the flow of control doesn't require it.
 var lastReading map[string]interface{}
 
 func NewLSWRequest(serialNumber uint, startRegister int, endRegister int) LSWRequest {

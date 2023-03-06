@@ -1,9 +1,21 @@
-FROM golang:1.19-bullseye
+FROM golang:1.19.6-alpine3.16 as builder
 
-ADD . /src
+WORKDIR /build
 
-RUN apt update && apt install -y ca-certificates tzdata && \
-  cd /src && go build && /bin/mv -vf /src/sofar* /sofar
+COPY . .
+
+RUN go mod download && CGO_ENABLED=0 \
+    go build -o ./sofar .
+
+FROM alpine:3.16.4
 
 WORKDIR /
-CMD ["/sofar"]
+
+RUN apk upgrade --no-cache --ignore alpine-baselayout --available && \
+    apk --no-cache add ca-certificates tzdata && \
+    rm -rf /var/cache/apk/*
+
+COPY --from=builder /build/sofar .
+RUN chmod +x sofar
+
+ENTRYPOINT ["/sofar"]

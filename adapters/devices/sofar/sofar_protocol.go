@@ -2,8 +2,8 @@ package sofar
 
 type field struct {
 	register  int
-	Name      string // Need to read names to create gauges on startup
-	ValueType string
+	name      string
+	valueType string
 	factor    string
 	unit      string
 }
@@ -11,13 +11,36 @@ type field struct {
 type registerRange struct {
 	start       int
 	end         int
-	ReplyFields []field
+	replyFields []field
+}
+
+var allRegisterRanges = []registerRange{
+	rrGridOutput,
+	rrPVOutput,
+	rrEnergyTodayTotals,
+	rrSystemInfo,
+	rrBatOutput,
+	rrRatio,
+}
+
+func GetAllRegisterNames() []string {
+	result := make([]string, 0)
+	for _, rr := range allRegisterRanges {
+		for _, f := range rr.replyFields {
+			if f.name == "" || f.valueType == "" {
+				// Measurements without a name or value type are ignored in replies
+				continue
+			}
+			result = append(result, f.name)
+		}
+	}
+	return result
 }
 
 var rrSystemInfo = registerRange{
 	start: 0x400,
 	end:   0x43a,
-	ReplyFields: []field{
+	replyFields: []field{
 		{0x0404, "SysState", "U16", "", ""},
 		{0x0405, "Fault1", "U16", "", ""},
 		{0x0406, "Fault2", "U16", "", ""},
@@ -78,7 +101,7 @@ var rrSystemInfo = registerRange{
 var rrEnergyTodayTotals = registerRange{
 	start: 0x680,
 	end:   0x69B,
-	ReplyFields: []field{
+	replyFields: []field{
 		{0x684, "PV_Generation_Today", "U32", "0.01", "kWh"},
 		{0x686, "PV_Generation_Total", "U32", "0.1", "kWh"},
 		{0x688, "Load_Consumption_Today", "U32", "0.1", "kWh"},
@@ -97,7 +120,7 @@ var rrEnergyTodayTotals = registerRange{
 var rrPVOutput = registerRange{
 	start: 0x580,
 	end:   0x589,
-	ReplyFields: []field{
+	replyFields: []field{
 		{0x0584, "Voltage_PV1", "U16", "0.1", "V"},
 		{0x0585, "Current_PV1", "U16", "0.01", "A"},
 		{0x0586, "Power_PV1", "U16", "0.01", "kW"},
@@ -109,7 +132,7 @@ var rrPVOutput = registerRange{
 var rrGridOutput = registerRange{
 	start: 0x480,
 	end:   0x4bc,
-	ReplyFields: []field{
+	replyFields: []field{
 		{0x0484, "Frequency_Grid", "U16", "0.01", "Hz"},
 		{0x0485, "ActivePower_Output_Total", "I16", "0.01", "kW"},
 		{0x0486, "ReactivePower_Output_Total", "I16", "0.01", "kW"},
@@ -173,7 +196,7 @@ var rrGridOutput = registerRange{
 var rrBatOutput = registerRange{
 	start: 0x600,
 	end:   0x611,
-	ReplyFields: []field{
+	replyFields: []field{
 		{0x0604, "Voltage_Bat1", "U16", "0.1", "V"},
 		{0x0605, "Current_Bat1", "I16", "0.01", "A"},
 		{0x0606, "Power_Bat1", "I16", "0.01", "kW"},
@@ -194,7 +217,7 @@ var rrBatOutput = registerRange{
 var rrRatio = registerRange{
 	start: 0x1030,
 	end:   0x103D,
-	ReplyFields: []field{
+	replyFields: []field{
 		{0x1039, "PV_Generation_Ratio", "U16", "0.001", ""},
 		{0x103A, "Energy_Purchase_Ratio", "U16", "0.001", ""},
 		{0x103B, "Energy_Selling_Ratio", "U16", "0.001", ""},

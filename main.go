@@ -95,7 +95,7 @@ func main() {
 			go func() {
 				err = mqtt.InsertRecord(measurements)
 				if err != nil {
-					log.Printf("failed to insert record to MQTT: %s", err)
+					log.Printf("failed to insert record to MQTT: %s\n", err)
 				} else {
 					log.Println("measurements pushed to MQTT")
 				}
@@ -104,9 +104,9 @@ func main() {
 
 		if hasOTLP {
 			go func() {
-				err = telem.CollectAndPushMetrics(context.Background())
+				err = telem.CollectAndPushMetrics(context.Background(), measurements)
 				if err != nil {
-					log.Printf("error recording telemetry: %s", err)
+					log.Printf("error recording telemetry: %s\n", err)
 				} else {
 					log.Println("measurements pushed via OLTP")
 				}

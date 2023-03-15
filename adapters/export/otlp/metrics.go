@@ -17,7 +17,8 @@ import (
 )
 
 const (
-	appName = "sofar.logger"
+	appName       = "sofar.logger"
+	defaultPrefix = "sofar.logger"
 )
 
 type Config struct {
@@ -27,12 +28,15 @@ type Config struct {
 	Grpc struct {
 		Url string `yaml:"url"`
 	} `yaml:"grpc"`
+	Prefix string `yaml:"prefix"`
 }
 
 type Service struct {
-	m         metric.Meter
-	reader    sdk.Reader
-	exporters []sdk.Exporter
+	m            metric.Meter
+	prefix       string
+	measurements map[string]interface{}
+	reader       sdk.Reader
+	exporters    []sdk.Exporter
 }
 
 func New(c *Config) (*Service, error) {
@@ -42,8 +46,13 @@ func New(c *Config) (*Service, error) {
 		sdk.WithResource(newResource()),
 	)
 
+	prefix := defaultPrefix
+	if c.Prefix != "" {
+		prefix = c.Prefix
+	}
+
 	global.SetMeterProvider(mp)
-	m := global.Meter(appName)
+	m := global.Meter(prefix)
 
 	exporters := make([]sdk.Exporter, 0)
 	if url := c.Grpc.Url; url != "" {
@@ -63,9 +72,11 @@ func New(c *Config) (*Service, error) {
 	}
 
 	s := Service{
-		m:         m,
-		reader:    reader,
-		exporters: exporters,
+		m:            m,
+		prefix:       prefix,
+		measurements: make(map[string]interface{}),
+		reader:       reader,
+		exporters:    exporters,
 	}
 
 	err := s.initGauges()
@@ -77,31 +88,22 @@ func New(c *Config) (*Service, error) {
 
 // initGauges creates Int64 gauges for all reply fields that will be read
 func (s *Service) initGauges() error {
-	for _, rr := range sofar.AllRegisterRanges {
-		for _, f := range rr.ReplyFields {
-
-			if f.Name == "" || f.ValueType == "" {
-				// Measurements without a name or value type are ignored in replies
-				continue
-			}
-
-			name := f.Name
-			g := s.createGauge(name)
-			_, err := s.m.RegisterCallback(
-				// this function is called when a collection is triggered
-				func(ctx context.Context, o metric.Observer) error {
-					measurements := sofar.GetLastReading()
-					if v, ok := measurements[name]; ok {
-						o.ObserveInt64(*g, convertToInt64(v))
-					} else {
-						log.Printf("could not find measurement for %s", name)
-					}
-					return nil
-				}, *g)
-			if err != nil {
-				log.Println("error registering gauge callback")
-				return err
-			}
+	for _, name := range sofar.GetAllRegisterNames() {
+		lookup := name // creating locally scoped variable for use in callback function
+		g := s.createGauge(lookup)
+		_, err := s.m.RegisterCallback(
+			// this function is called when a collection is triggered
+			func(ctx context.Context, o metric.Observer) error {
+				if v, ok := s.measurements[lookup]; ok {
+					o.ObserveInt64(*g, convertToInt64(v))
+				} else {
+					log.Printf("could not find measurement for %s\n", name)
+				}
+				return nil
+			}, *g)
+		if err != nil {
+			log.Println("error registering gauge callback")
+			return err
 		}
 	}
 	return nil
@@ -116,25 +118,15 @@ func (s *Service) createGauge(n string) *instrument.Int64ObservableGauge {
 }
 
 // CollectAndPushMetrics triggers the collection and export of metrics over OTLP
-func (s *Service) CollectAndPushMetrics(ctx context.Context) error {
-	err := s.collectAndPushMetrics(ctx)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (s *Service) collectAndPushMetrics(ctx context.Context) error {
+func (s *Service) CollectAndPushMetrics(ctx context.Context, measurements map[string]interface{}) error {
+	s.measurements = measurements
 	rm := metricdata.ResourceMetrics{}
-	err := s.reader.Collect(ctx, &rm)
-	if err != nil {
+	if err := s.reader.Collect(ctx, &rm); err != nil {
 		return err
 	}
 
 	for _, e := range s.exporters {
-		err = e.Export(ctx, rm)
-		if err != nil {
+		if err := e.Export(ctx, rm); err != nil {
 			return err
 		}
 	}

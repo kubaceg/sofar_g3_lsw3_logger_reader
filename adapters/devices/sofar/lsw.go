@@ -76,61 +76,17 @@ func (l LSWRequest) checksum(buf []byte) uint8 {
 func readData(connPort ports.CommunicationPort, serialNumber uint) (map[string]interface{}, error) {
 	result := make(map[string]interface{})
 
-	reply, err := readRegisterRange(rrGridOutput, connPort, serialNumber)
-	if err != nil {
-		return nil, err
-	}
+	for _, rr := range allRegisterRanges {
+		reply, err := readRegisterRange(rr, connPort, serialNumber)
+		if err != nil {
+			return nil, err
+		}
 
-	for k, v := range reply {
-		result[k] = v
+		for k, v := range reply {
+			result[k] = v
+		}
 	}
-
-	reply, err = readRegisterRange(rrPVOutput, connPort, serialNumber)
-	if err != nil {
-		return nil, err
-	}
-
-	for k, v := range reply {
-		result[k] = v
-	}
-
-	reply, err = readRegisterRange(rrEnergyTodayTotals, connPort, serialNumber)
-	if err != nil {
-		return nil, err
-	}
-
-	for k, v := range reply {
-		result[k] = v
-	}
-
-	reply, err = readRegisterRange(rrSystemInfo, connPort, serialNumber)
-	if err != nil {
-		return nil, err
-	}
-
-	for k, v := range reply {
-		result[k] = v
-	}
-
-	reply, err = readRegisterRange(rrBatOutput, connPort, serialNumber)
-	if err != nil {
-		return nil, err
-	}
-
-	for k, v := range reply {
-		result[k] = v
-	}
-
-	reply, err = readRegisterRange(rrRatio, connPort, serialNumber)
-	if err != nil {
-		return nil, err
-	}
-
-	for k, v := range reply {
-		result[k] = v
-	}
-
-	return result, err
+	return result, nil
 }
 
 func readRegisterRange(rr registerRange, connPort ports.CommunicationPort, serialNumber uint) (map[string]interface{}, error) {

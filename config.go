@@ -2,9 +2,10 @@ package main
 
 import (
 	"errors"
+	"github.com/kubaceg/sofar_g3_lsw3_logger_reader/adapters/export/otlp"
 	"os"
 
-	"github.com/kubaceg/sofar_g3_lsw3_logger_reader/adapters/databases/mosquitto"
+	"github.com/kubaceg/sofar_g3_lsw3_logger_reader/adapters/export/mosquitto"
 	"gopkg.in/yaml.v2"
 )
 
@@ -15,6 +16,7 @@ type Config struct {
 		ReadInterval int    `default:"60" yaml:"readInterval"`
 	} `yaml:"inverter"`
 	Mqtt mosquitto.MqttConfig `yaml:"mqtt"`
+	Otlp otlp.Config          `yaml:"otlp"`
 }
 
 func (c *Config) validate() error {

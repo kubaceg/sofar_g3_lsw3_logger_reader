@@ -14,6 +14,29 @@ type registerRange struct {
 	replyFields []field
 }
 
+var allRegisterRanges = []registerRange{
+	rrGridOutput,
+	rrPVOutput,
+	rrEnergyTodayTotals,
+	rrSystemInfo,
+	rrBatOutput,
+	rrRatio,
+}
+
+func GetAllRegisterNames() []string {
+	result := make([]string, 0)
+	for _, rr := range allRegisterRanges {
+		for _, f := range rr.replyFields {
+			if f.name == "" || f.valueType == "" {
+				// Measurements without a name or value type are ignored in replies
+				continue
+			}
+			result = append(result, f.name)
+		}
+	}
+	return result
+}
+
 var rrSystemInfo = registerRange{
 	start: 0x400,
 	end:   0x43a,

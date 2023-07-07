@@ -4,3 +4,4 @@ config.yaml
 sofar
 sofar-arm
 .idea
+.DS_Store

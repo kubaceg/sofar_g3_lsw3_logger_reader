@@ -142,11 +142,11 @@ func readRegisterRange(rr registerRange, connPort ports.CommunicationPort, seria
 
 		switch f.valueType {
 		case "U16":
-			reply[f.name] = binary.BigEndian.Uint16(modbusReply[fieldOffset : fieldOffset+2])
+			reply[f.name] = float32(binary.BigEndian.Uint16(modbusReply[fieldOffset:fieldOffset+2])) * f.factor
 		case "U32":
-			reply[f.name] = binary.BigEndian.Uint32(modbusReply[fieldOffset : fieldOffset+4])
+			reply[f.name] = float32(binary.BigEndian.Uint32(modbusReply[fieldOffset:fieldOffset+4])) * f.factor
 		case "I16":
-			reply[f.name] = int16(binary.BigEndian.Uint16(modbusReply[fieldOffset : fieldOffset+2]))
+			reply[f.name] = float32(int16(binary.BigEndian.Uint16(modbusReply[fieldOffset:fieldOffset+2]))) * f.factor
 		default:
 		}
 	}

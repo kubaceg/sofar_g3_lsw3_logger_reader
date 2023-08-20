@@ -73,7 +73,7 @@ func (l LSWRequest) checksum(buf []byte) uint8 {
 	return checksum
 }
 
-func readData(connPort ports.CommunicationPort, serialNumber uint) (map[string]interface{}, error) {
+func readData(connPort ports.CommunicationPort, serialNumber uint, attrWhiteList map[string]struct{}, attrBlackList []string) (map[string]interface{}, error) {
 	result := make(map[string]interface{})
 
 	for _, rr := range allRegisterRanges {
@@ -81,9 +81,15 @@ func readData(connPort ports.CommunicationPort, serialNumber uint) (map[string]i
 		if err != nil {
 			return nil, err
 		}
-
 		for k, v := range reply {
-			result[k] = v
+			ok := len(attrWhiteList) == 0
+			if !ok { // TODO: also handle attrBlackList
+				_, ok = attrWhiteList[k]
+			}
+			// log.Printf("readData: %s %v", k, ok)
+			if ok {
+				result[k] = v
+			}
 		}
 	}
 	return result, nil

@@ -55,27 +55,41 @@ func New(config *MqttConfig) (*Connection, error) {
 
 }
 
-func (conn *Connection) InsertRecord(measurement map[string]interface{}) error {
-	measurementCopy := make(map[string]interface{}, len(measurement))
-	for k, v := range measurement {
-		measurementCopy[k] = v
+func publish(conn *Connection, k string, v interface{}) {
+	token := conn.client.Publish(fmt.Sprintf("%s/%s", conn.prefix, k), 0, true, fmt.Sprintf("%v", v))
+	res := token.WaitTimeout(1 * time.Second)
+	if !res || token.Error() != nil {
+		log.Printf("error inserting to MQTT: %s", token.Error())
 	}
-	go func(measurement map[string]interface{}) {
-		// timestamp it
-		measurement["LastTimestamp"] = time.Now().UnixNano() / int64(time.Millisecond)
-		m, _ := json.Marshal(measurement)
-		measurement["All"] = string(m)
+}
 
-		for k, v := range measurement {
-			token := conn.client.Publish(fmt.Sprintf("%s/%s", conn.prefix, k), 0, true, fmt.Sprintf("%v", v))
-			res := token.WaitTimeout(1 * time.Second)
-			if !res || token.Error() != nil {
-				log.Printf("error inserting to MQTT: %s", token.Error())
-			}
-		}
+// next thing to do is add discovery
+// func discovery() {
+// MQTT Discovery: https://www.home-assistant.io/integrations/mqtt/#mqtt-discovery
 
-	}(measurementCopy)
+// homeassistant/sensor/inverter/config
+// payload
+// unique_id: PV_Generation_Today01ad
+// state_topic: "homeassistant/sensor/inverter/PV_Generation_Today"
+// device_class: energy
+// state_class: measurement
+// unit_of_measurement: 'kWh'
+// value_template: "{{ value|int * 0.01 }}"```
 
+// {"name": null, "device_class": "motion", "state_topic": "homeassistant/binary_sensor/garden/state", "unique_id": "motion01ad", "device": {"identifiers": ["01ad"], "name": "Garden" }}
+//}
+
+func (conn *Connection) InsertRecord(measurement map[string]interface{}) error {
+	m := make(map[string]interface{}, len(measurement))
+	for k, v := range measurement {
+		m[k] = v
+	}
+	m["LastTimestamp"] = time.Now().UnixNano() / int64(time.Millisecond)
+	all, _ := json.Marshal(m)
+	m["All"] = string(all)
+	for k, v := range m {
+		publish(conn, k, v)
+	}
 	return nil
 }
 

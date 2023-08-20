@@ -66,7 +66,7 @@ func initialize() {
 		}
 	}
 
-	device = sofar.NewSofarLogger(config.Inverter.LoggerSerial, port)
+	device = sofar.NewSofarLogger(config.Inverter.LoggerSerial, port, config.Inverter.AttrWhiteList, config.Inverter.AttrBlackList)
 }
 
 func main() {

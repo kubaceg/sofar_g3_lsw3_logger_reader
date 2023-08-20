@@ -2,8 +2,9 @@ package main
 
 import (
 	"errors"
-	"github.com/kubaceg/sofar_g3_lsw3_logger_reader/adapters/export/otlp"
 	"os"
+
+	"github.com/kubaceg/sofar_g3_lsw3_logger_reader/adapters/export/otlp"
 
 	"github.com/kubaceg/sofar_g3_lsw3_logger_reader/adapters/export/mosquitto"
 	"gopkg.in/yaml.v2"
@@ -11,9 +12,11 @@ import (
 
 type Config struct {
 	Inverter struct {
-		Port         string `yaml:"port"`
-		LoggerSerial uint   `yaml:"loggerSerial"`
-		ReadInterval int    `default:"60" yaml:"readInterval"`
+		Port          string   `yaml:"port"`
+		LoggerSerial  uint     `yaml:"loggerSerial"`
+		ReadInterval  int      `default:"60" yaml:"readInterval"`
+		AttrWhiteList []string `yaml:"attrWhiteList"`
+		AttrBlackList []string `yaml:"attrBlackList"`
 	} `yaml:"inverter"`
 	Mqtt mosquitto.MqttConfig `yaml:"mqtt"`
 	Otlp otlp.Config          `yaml:"otlp"`

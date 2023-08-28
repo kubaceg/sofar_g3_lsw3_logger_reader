@@ -7,11 +7,12 @@ inverter:
   #
   # if there is a non-empty attrWhiteList then only these explicitly listed attributes are output
   attrWhiteList:
-    - ActivePower_Output_Total # Total PV generation (10W)
+    - ActivePower_Output_Total # Total PV generation (in units of 10W)
     - Power_PV1                # PV output of string 1 (10W)
     - Power_PV2                # PV output of string 2 (10W); PV1 + PV2 > ActivePower_Output_Total by about 3.5% due to inverter inefficiency?
     - ActivePower_Load_Sys     # total power consumption (10W)
     - ActivePower_PCC_Total    # grid export (+) or import (-) (10W) = ActivePower_Output_Total - ActivePower_Load_Sys (so it is redundant data)
+    - PV_Generation_Today      # generation since midnight (10Wh)
   # else attributes are output unless they match a regex in attrBlackList
   attrBlackList:
     - "^[ST]_"                 # prefix R_, S_, T_ for 3 phases, only R_ used in single phase systems
@@ -21,7 +22,8 @@ mqtt:                     # MQTT disabled if url & prefix both blank
   url: 1.2.3.4:1883       # MQTT broker URL (e.g. 1.2.3.4:1883)
   user:                   # MQTT username (leave empty when not needed)
   password:               # MQTT password (leave empty when not needed)
-  prefix: /sensors/energy/inverter # topic prefix on which data will be sent
+  discovery: homeassistant/sensor   # topic prefix for MQTT Discovery
+  state:     energy/inverter/state  # topic for state
 
 otlp:                     # OTLP disabled if both urls blank
   grpc:

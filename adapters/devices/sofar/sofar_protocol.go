@@ -1,5 +1,9 @@
 package sofar
 
+import (
+	"github.com/kubaceg/sofar_g3_lsw3_logger_reader/ports"
+)
+
 type field struct {
 	register  int
 	name      string
@@ -32,6 +36,18 @@ func GetAllRegisterNames() []string {
 				continue
 			}
 			result = append(result, f.name)
+		}
+	}
+	return result
+}
+
+func getDiscoveryFields(nameFilter func(string) bool) []ports.DiscoveryField {
+	result := make([]ports.DiscoveryField, 0)
+	for _, rr := range allRegisterRanges {
+		for _, f := range rr.replyFields {
+			if f.name != "" && f.valueType != "" && nameFilter(f.name) {
+				result = append(result, ports.DiscoveryField{Name: f.name, Factor: f.factor, Unit: f.unit})
+			}
 		}
 	}
 	return result

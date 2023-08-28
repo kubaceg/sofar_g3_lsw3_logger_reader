@@ -28,8 +28,20 @@ func NewSofarLogger(serialNumber uint, connPort ports.CommunicationPort, attrWhi
 	}
 }
 
+func (s *Logger) nameFilter(k string) bool {
+	ok := len(s.attrWhiteList) == 0
+	if !ok { // TODO: also handle attrBlackList
+		_, ok = s.attrWhiteList[k]
+	}
+	return ok
+}
+
+func (s *Logger) GetDiscoveryFields() []ports.DiscoveryField {
+	return getDiscoveryFields(s.nameFilter)
+}
+
 func (s *Logger) Query() (map[string]interface{}, error) {
-	return readData(s.connPort, s.serialNumber, s.attrWhiteList, s.attrBlackList)
+	return readData(s.connPort, s.serialNumber, s.nameFilter)
 }
 
 func (s *Logger) Name() string {

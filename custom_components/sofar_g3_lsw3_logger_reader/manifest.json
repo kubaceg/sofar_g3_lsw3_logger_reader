@@ -1,0 +1,9 @@
+{
+  "domain": "sofar_g3_lsw3_logger_reader",
+  "name": "Sofar LSW3",
+  "version": "0.1.0",
+  "integration_type": "device",
+  "iot_class": "local_polling",
+  "dependencies": ["mqtt"],
+  "documentation": "https://github.com/neilbacon/sofar_g3_lsw3_logger_reader"
+}

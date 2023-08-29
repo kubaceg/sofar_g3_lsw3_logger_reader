@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
@@ -67,15 +66,15 @@ func (conn *Connection) publish(topic string, msg string, retain bool) {
 }
 
 // return "power" for kW etc., "energy" for kWh etc.
-func unit2DeviceClass(unit string) string {
-	if strings.HasSuffix(unit, "Wh") {
-		return "energy"
-	} else if strings.HasSuffix(unit, "W") {
-		return "power"
-	} else {
-		return ""
-	}
-}
+// func unit2DeviceClass(unit string) string {
+// 	if strings.HasSuffix(unit, "Wh") {
+// 		return "energy"
+// 	} else if strings.HasSuffix(unit, "W") {
+// 		return "power"
+// 	} else {
+// 		return ""
+// 	}
+// }
 
 // MQTT Discovery: https://www.home-assistant.io/integrations/mqtt/#mqtt-discovery
 func (conn *Connection) InsertDiscoveryRecord(discovery string, state string, fields []ports.DiscoveryField) error {
@@ -83,9 +82,9 @@ func (conn *Connection) InsertDiscoveryRecord(discovery string, state string, fi
 	for _, f := range fields {
 		topic := fmt.Sprintf("%s/%s/config", discovery, f.Name)
 		json, _ := json.Marshal(map[string]interface{}{
-			"name":         f.Name,
-			"unique_id":    fmt.Sprintf("%s_%s", f.Name, uniq),
-			"device_class": unit2DeviceClass(f.Unit),
+			"name":      f.Name,
+			"unique_id": fmt.Sprintf("%s_%s", f.Name, uniq),
+			// "device_class": unit2DeviceClass(f.Unit),  // TODO: not working, always "energy"
 			// "state_class": "measurement",
 			"state_topic":         state,
 			"unit_of_measurement": f.Unit,

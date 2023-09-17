@@ -15,6 +15,7 @@ type Config struct {
 		Port          string   `yaml:"port"`
 		LoggerSerial  uint     `yaml:"loggerSerial"`
 		ReadInterval  int      `default:"60" yaml:"readInterval"`
+		LoopLogging   bool     `default:"true" yaml:"loopLogging"`
 		AttrWhiteList []string `yaml:"attrWhiteList"`
 		AttrBlackList []string `yaml:"attrBlackList"`
 	} `yaml:"inverter"`

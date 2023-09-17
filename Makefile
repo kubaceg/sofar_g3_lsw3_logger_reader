@@ -1,5 +1,7 @@
-build-arm:
-	env GOOS=linux GOARCH=arm GOARM=5 go build -o sofar-arm
+all: build-arm build-x86
 
-build:
-	go build -o sofar
+build-arm:
+	env GOOS=linux GOARCH=arm GOARM=5 go build -o custom_components/sofar_g3_lsw3_logger_reader/sofar-arm
+
+build-x86:
+	go build -o custom_components/sofar_g3_lsw3_logger_reader/sofar-x86

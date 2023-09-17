@@ -1,9 +1,10 @@
 # make your own in config.yaml
 
 inverter:
-  port: 1.2.3.4:8899      # required, port name e.g. /dev/ttyUSB0 for serial or 1.2.3.4:8899 for TCP/IP
-  loggerSerial: 23XXXXXXX # required, logger serial number
-  readInterval: 60        # update interval in seconds, default 60
+  port: 1.2.3.4:8899       # required, port name e.g. /dev/ttyUSB0 for serial or 1.2.3.4:8899 for TCP/IP
+  loggerSerial: 23XXXXXXXX # required, logger serial number
+  readInterval: 60         # update interval in seconds, default 60
+  loopLogging: true        # false to avoid ever growing log file
   #
   # if there is a non-empty attrWhiteList then only these explicitly listed attributes are output
   attrWhiteList:

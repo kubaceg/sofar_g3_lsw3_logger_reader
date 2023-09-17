@@ -1,12 +1,17 @@
 package sofar
 
-import "github.com/kubaceg/sofar_g3_lsw3_logger_reader/ports"
+import (
+	"log"
+	"regexp"
+
+	"github.com/kubaceg/sofar_g3_lsw3_logger_reader/ports"
+)
 
 type Logger struct {
 	serialNumber  uint
 	connPort      ports.CommunicationPort
 	attrWhiteList map[string]struct{}
-	attrBlackList []string
+	attrBlackList []*regexp.Regexp
 }
 
 // for a set in go we use a map of keys -> empty struct
@@ -19,21 +24,40 @@ func toSet(slice []string) map[string]struct{} {
 	return set
 }
 
+func toREs(patterns []string) []*regexp.Regexp {
+	res := make([]*regexp.Regexp, len(patterns))
+	for idx, p := range patterns {
+		re, err := regexp.Compile(p)
+		if err == nil {
+			res = append(res, re)
+		} else {
+			log.Printf("config attrBlackList item %d '%s' not a valid regexp; %v", idx, p, err)
+		}
+	}
+	return res
+}
+
 func NewSofarLogger(serialNumber uint, connPort ports.CommunicationPort, attrWhiteList []string, attrBlackList []string) *Logger {
 	return &Logger{
 		serialNumber:  serialNumber,
 		connPort:      connPort,
 		attrWhiteList: toSet(attrWhiteList),
-		attrBlackList: attrBlackList,
+		attrBlackList: toREs(attrBlackList),
 	}
 }
 
 func (s *Logger) nameFilter(k string) bool {
-	ok := len(s.attrWhiteList) == 0
-	if !ok { // TODO: also handle attrBlackList
-		_, ok = s.attrWhiteList[k]
+	if len(s.attrWhiteList) > 0 {
+		_, ok := s.attrWhiteList[k]
+		return ok
+	} else {
+		for _, re := range s.attrBlackList {
+			if re.MatchString(k) {
+				return false
+			}
+		}
 	}
-	return ok
+	return true
 }
 
 func (s *Logger) GetDiscoveryFields() []ports.DiscoveryField {

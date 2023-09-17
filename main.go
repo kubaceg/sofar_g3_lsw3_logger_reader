@@ -78,7 +78,9 @@ func main() {
 	failedConnections := 0
 
 	for {
-		log.Printf("performing measurements")
+		if config.Inverter.LoopLogging {
+			log.Printf("performing measurements")
+		}
 		timeStart := time.Now()
 
 		measurements, err := device.Query()

@@ -72,24 +72,49 @@ func unit2DeviceClass(unit string) string {
 		return "energy"
 	} else if strings.HasSuffix(unit, "W") {
 		return "power"
+	} else if strings.HasSuffix(unit, "Hz") {
+		return "frequency"
+	} else if strings.HasSuffix(unit, "VA") {
+		return "apparent_power"
+	} else if strings.HasSuffix(unit, "VAR") {
+		return "reactive_power"
+	} else if strings.HasSuffix(unit, "V") {
+		return "voltage"
+	} else if strings.HasSuffix(unit, "A") {
+		return "current"
+	} else if strings.HasSuffix(unit, "Ω") {
+		return "voltage" // resistance not valid in https://developers.home-assistant.io/docs/core/entity/sensor/ so use "voltage"
+	} else if strings.HasSuffix(unit, "℃") {
+		return "temperature"
+	} else if strings.HasSuffix(unit, "min") {
+		return "duration"
 	} else {
 		return ""
 	}
 }
 
+func unit2StateClass(unit string) string {
+	if strings.HasSuffix(unit, "Wh") {
+		return "total"
+	} else {
+		return "measurement"
+	}
+}
+
 // MQTT Discovery: https://www.home-assistant.io/integrations/mqtt/#mqtt-discovery
-func (conn *Connection) InsertDiscoveryRecord(discovery string, state string, fields []ports.DiscoveryField) error {
+func (conn *Connection) InsertDiscoveryRecord(discovery string, state string, expireAfter int, fields []ports.DiscoveryField) error {
 	uniq := "01ad" // TODO: get from config?
 	for _, f := range fields {
 		topic := fmt.Sprintf("%s/%s/config", discovery, f.Name)
 		json, _ := json.Marshal(map[string]interface{}{
-			"name":         f.Name,
-			"unique_id":    fmt.Sprintf("%s_%s", f.Name, uniq),
-			"device_class": unit2DeviceClass(f.Unit),
-			// "state_class": "measurement",
+			"name":                f.Name,
+			"unique_id":           fmt.Sprintf("%s_%s", f.Name, uniq),
+			"device_class":        unit2DeviceClass(f.Unit),
+			"state_class":         unit2StateClass(f.Unit),
 			"state_topic":         state,
 			"unit_of_measurement": f.Unit,
 			"value_template":      fmt.Sprintf("{{ value_json.%s|int * %s }}", f.Name, f.Factor),
+			"expire_after":        expireAfter, // no messages for this long makes entity "Unavailable"
 			"device": map[string]interface{}{
 				"identifiers": [...]string{fmt.Sprintf("Inverter_%s", uniq)},
 				"name":        "Inverter",

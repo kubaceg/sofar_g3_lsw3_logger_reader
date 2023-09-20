@@ -1,9 +1,9 @@
 # Sofar g3 LSW-3 logger reader
 
-`sofar_g3_lsw3_logger_reader` is a go program to integrate certain Sofar solar PV inverters with MQTT (e.g. mosquito in HomeAssistant).
+`sofar_g3_lsw3_logger_reader` is a go program to integrate certain Sofar solar PV inverters with MQTT (e.g. mosquito in HomeAssistant) and/or OTLP.
 It works with Sofar inverters fitted with a LSW-3 WiFi data logger with serial number 23XXXXXXXX.
 The program:
- - loops forever, polling the modbus port on the LSW-3 and writing the data to MQTT (all local, no dependency on SolarMan cloud),
+ - loops forever, polling the modbus port on the LSW-3 and writing the data to MQTT and/or OTLP (all local, no dependency on SolarMan cloud),
  - reads its `config.yaml` from the current working directory,
  - writes logging to stderr,
  - supports MQTT Discovery.

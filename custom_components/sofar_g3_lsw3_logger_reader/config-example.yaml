@@ -3,17 +3,25 @@
 inverter:
   port: 1.2.3.4:8899       # required, port name e.g. /dev/ttyUSB0 for serial or 1.2.3.4:8899 for TCP/IP
   loggerSerial: 23XXXXXXXX # required, logger serial number
-  readInterval: 60         # update interval in seconds, default 60
-  loopLogging: true        # false to avoid ever growing log file
+  readInterval: 10         # update interval in seconds, default 60
+  loopLogging: true        # false to avoid a line to log file every readInterval
   #
   # if there is a non-empty attrWhiteList then only these explicitly listed attributes are output
   attrWhiteList:
     - ActivePower_Output_Total # Total PV generation (in units of 10W)
-    - Power_PV1                # PV output of string 1 (10W)
-    - Power_PV2                # PV output of string 2 (10W); PV1 + PV2 > ActivePower_Output_Total by about 3.5% due to inverter inefficiency?
     - ActivePower_Load_Sys     # total power consumption (10W)
     - ActivePower_PCC_Total    # grid export (+) or import (-) (10W) = ActivePower_Output_Total - ActivePower_Load_Sys (so it is redundant data)
+    - Power_PV1                # PV output of string 1 (10W)
+    - Power_PV2                # PV output of string 2 (10W); PV1 + PV2 > ActivePower_Output_Total by about 3.5% due to inverter inefficiency?
     - PV_Generation_Today      # generation since midnight (10Wh)
+    - PV_Generation_Total
+    - GenerationTime_Today
+    - GenerationTime_Total
+    - Frequency_Grid
+    - Voltage_Phase_R          # grid voltage on phase R/1
+    - InsulationResistance     # changes to these last ones might indicate a problem
+    - Temperature_Env1
+    - Temperature_HeatSink1
   # else attributes are output unless they match a regex in attrBlackList
   attrBlackList:
     - "^[ST]_"                 # prefix R_, S_, T_ for 3 phases, only R_ used in single phase systems

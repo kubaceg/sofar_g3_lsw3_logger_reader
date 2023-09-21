@@ -25,7 +25,7 @@ func toSet(slice []string) map[string]struct{} {
 }
 
 func toREs(patterns []string) []*regexp.Regexp {
-	res := make([]*regexp.Regexp, len(patterns))
+	res := make([]*regexp.Regexp, 0, len(patterns))
 	for idx, p := range patterns {
 		re, err := regexp.Compile(p)
 		if err == nil {

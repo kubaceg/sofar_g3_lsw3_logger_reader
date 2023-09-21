@@ -72,7 +72,7 @@ func main() {
 	initialize()
 
 	if hasMQTT {
-		mqtt.InsertDiscoveryRecord(config.Mqtt.Discovery, config.Mqtt.State, device.GetDiscoveryFields())
+		mqtt.InsertDiscoveryRecord(config.Mqtt.Discovery, config.Mqtt.State, config.Inverter.ReadInterval*5, device.GetDiscoveryFields())
 	}
 
 	failedConnections := 0
@@ -86,6 +86,8 @@ func main() {
 		measurements, err := device.Query()
 		if err != nil {
 			log.Printf("failed to perform measurements: %s", err)
+			// at night, inverter is offline, err = "dial tcp 192.168.xx.xxx:8899: i/o timeout"
+			// At other times we occaisionally get this error and also: "short reply: xx bytes"
 			failedConnections++
 
 			if failedConnections > maximumFailedConnections {

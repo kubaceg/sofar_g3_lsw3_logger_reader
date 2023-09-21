@@ -3,7 +3,7 @@
 inverter:
   port: 1.2.3.4:8899       # required, port name e.g. /dev/ttyUSB0 for serial or 1.2.3.4:8899 for TCP/IP
   loggerSerial: 23XXXXXXXX # required, logger serial number
-  readInterval: 60         # update interval in seconds, default 60
+  readInterval: 10         # update interval in seconds, default 60
   loopLogging: true        # false to avoid a line to log file every readInterval
   #
   # if there is a non-empty attrWhiteList then only these explicitly listed attributes are output
@@ -22,7 +22,6 @@ inverter:
     - InsulationResistance     # changes to these last ones might indicate a problem
     - Temperature_Env1
     - Temperature_HeatSink1
-    - Temperature_HeatSink2
   # else attributes are output unless they match a regex in attrBlackList
   attrBlackList:
     - "^[ST]_"                 # prefix R_, S_, T_ for 3 phases, only R_ used in single phase systems
@@ -71,7 +70,7 @@ otlp:                     # OTLP disabled if both urls blank
 #     "SysTime_Year": 23,
 #     "Temperature_Env1": 48,                # Single Plate Ambient Temperature (label from SolarMan app)
 #     "Temperature_HeatSink1": 35,           # Radiator Temperature 1 (label from SolarMan app)
-#     "Temperature_HeatSink2": 120,          # nothing with this value in SolarMan app
+#     "Temperature_HeatSink2": 120,          # value never seems to change
 
 # # PV strings of panels:
 #     "Power_PV1": 175,                      # PV output of string 1 (10W)

@@ -7,16 +7,14 @@ It runs the program with:
 
 ## Installation and setup
 
-1. First get the go program `sofar_g3_lsw3_logger_reader` working on your dev machine, so that you have a working `config.yaml` and `sofar-x86` (x86) and `sofar-arm` (arm) binary executables.
-2. Copy this directory `custom_components/sofar_g3_lsw3_logger_reader` to homeassistant's `/config/custom_components` 
+1. First get the go program `sofar_g3_lsw3_logger_reader` working on your dev machine, so that you have a working `config.yaml` and `sofar-x86` (x86) and `sofar-arm` (arm) binary executables (in this directory on your dev machine)
+2. Copy this directory `custom_components/sofar_g3_lsw3_logger_reader` from your dev machine to homeassistant's `/config/custom_components` 
 (creating `/config/custom_components/sofar_g3_lsw3_logger_reader`). 
 You can use the `Samba share` or `Advanced SSH & Web Terminal` add-ons to do this.
-3. Copy the working `config.yaml` (from step 1) to the same directory.
-4. Copy the executables `sofar` (x86) and `sofar-arm` (arm) (from step 1) to this same directory.
-5. Enable the custom component by adding a line `sofar_g3_lsw3_logger_reader:` to homeassistant's `/config/configuration.yaml`.
-6. Do a full restart of homeassistant: `Developer Tools` > `YAML` > `CHECK CONFIGURATION` then `RESTART` > `Restart Home Assistant`
-7. Check the content of `err.log` in this same directory.
-8. Add the `Inverter` device to your dashhboard: `Settings` > `Devices & Services` > `Integration` > `MQTT` > `1 device` > `ADD TO DASHBOARD`
+3. Enable the custom component by adding a line `sofar_g3_lsw3_logger_reader:` to homeassistant's `/config/configuration.yaml`.
+4. Do a full restart of homeassistant: `Developer Tools` > `YAML` > `CHECK CONFIGURATION` then `RESTART` > `Restart Home Assistant`
+5. Check the content of homeassistant's `/config/custom_components/sofar_g3_lsw3_logger_reader/err.log`
+6. Add the `Inverter` device to your dashhboard: `Settings` > `Devices & Services` > `Integration` > `MQTT` > `1 device` > `ADD TO DASHBOARD`
 
 ## To Do
 

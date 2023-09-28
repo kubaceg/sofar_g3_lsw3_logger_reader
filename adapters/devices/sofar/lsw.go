@@ -112,27 +112,25 @@ func readRegisterRange(rr registerRange, connPort ports.CommunicationPort, seria
 		return nil, err
 	}
 
-	// read the result
-	buf := make([]byte, 2048)
-	n, err := connPort.Read(buf)
-	if err != nil {
-		return nil, err
+	// read enough bytes
+	buf := []byte{}
+	for {
+		b := make([]byte, 2048)
+		n, err := connPort.Read(b)
+		if n > 0 {
+			buf = append(buf, b[:n]...)
+		}
+		if err != nil {
+			return nil, err
+		}
+		if len(buf) >= 28 && len(buf) >= 28+int(buf[27]) {
+			break
+		}
 	}
-
-	// truncate the buffer
-	buf = buf[:n]
-	if len(buf) < 48 {
-		// short reply
-		return nil, fmt.Errorf("short reply: %d bytes", n)
-	}
-
-	replyBytesCount := buf[27]
-
-	modbusReply := buf[28 : 28+replyBytesCount]
+	modbusReply := buf[28 : 28+buf[27]]
 
 	// shove the data into the reply
 	reply := make(map[string]interface{})
-
 	for _, f := range rr.replyFields {
 		fieldOffset := (f.register - rr.start) * 2
 

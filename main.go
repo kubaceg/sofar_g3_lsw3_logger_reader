@@ -17,8 +17,6 @@ import (
 	"github.com/kubaceg/sofar_g3_lsw3_logger_reader/ports"
 )
 
-// maximumFailedConnections maximum number failed logger connection, after this number will be exceeded reconnect
-// interval will be extended from 5s to readInterval defined in config file
 const maximumFailedConnections = 3
 
 var (
@@ -75,51 +73,54 @@ func main() {
 		mqtt.InsertDiscoveryRecord(config.Mqtt.Discovery, config.Mqtt.State, config.Inverter.ReadInterval*5, device.GetDiscoveryFields())
 	}
 
-	failedConnections := 0
-
 	for {
 		if config.Inverter.LoopLogging {
 			log.Printf("performing measurements")
 		}
-		timeStart := time.Now()
 
-		measurements, err := device.Query()
-		if err != nil {
-			log.Printf("failed to perform measurements: %s", err)
-			// at night, inverter is offline, err = "dial tcp 192.168.xx.xxx:8899: i/o timeout"
-			// At other times we occaisionally get this error and also: "short reply: xx bytes"
-			failedConnections++
-
-			if failedConnections > maximumFailedConnections {
-				time.Sleep(time.Duration(config.Inverter.ReadInterval) * time.Second)
+		var measurements map[string]interface{} = nil
+		var err error
+		for retry := 0; measurements == nil && retry < maximumFailedConnections; retry++ {
+			measurements, err = device.Query()
+			if err != nil {
+				log.Printf("failed to perform measurements on retry %d: %s", retry, err)
+				// at night, inverter is offline, err = "dial tcp 192.168.xx.xxx:8899: i/o timeout"
+				// at other times occaisionally: "read tcp 192.168.68.104:38670->192.168.68.106:8899: i/o timeout"
 			}
-
-			continue
 		}
-
-		failedConnections = 0
 
 		if hasMQTT {
-			// removed from async go func 'goroutine', not needed and proper usage requires WaitGroup to wait for completion
-			mqtt.InsertRecord(measurements) // logs errors, always returns nil
+			var m map[string]interface{} = nil
+			timeStamp := time.Now().UnixNano() / int64(time.Millisecond)
+			if measurements != nil {
+				m = make(map[string]interface{}, len(measurements)+2)
+				for k, v := range measurements {
+					m[k] = v
+				}
+				m["availability"] = "online"
+				m["LastTimestamp"] = timeStamp
+			} else {
+				m = map[string]interface{}{
+					"availability":  "offline",
+					"LastTimestamp": timeStamp,
+				}
+			}
+			err := mqtt.InsertRecord(m) // logs errors, always returns nil
+			if err != nil {
+			}
 		}
 
-		if hasOTLP {
-			// removed from async go func 'goroutine'
-			err = telem.CollectAndPushMetrics(context.Background(), measurements)
+		if hasOTLP && measurements != nil {
+			err := telem.CollectAndPushMetrics(context.Background(), measurements)
 			if err != nil {
 				log.Printf("error recording telemetry: %s\n", err)
 			} else {
 				log.Println("measurements pushed via OLTP")
 			}
+
 		}
 
-		// if mqtt & otlp were done async then the WaitGroup to wait for completion would go here
-		duration := time.Since(timeStart)
-		delay := time.Duration(config.Inverter.ReadInterval)*time.Second - duration
-		if delay > 0 {
-			time.Sleep(delay)
-		}
+		time.Sleep(time.Duration(config.Inverter.ReadInterval) * time.Second)
 	}
 
 }

@@ -107,14 +107,15 @@ func (conn *Connection) InsertDiscoveryRecord(discovery string, state string, ex
 	for _, f := range fields {
 		topic := fmt.Sprintf("%s/%s/config", discovery, f.Name)
 		json, _ := json.Marshal(map[string]interface{}{
-			"name":                f.Name,
-			"unique_id":           fmt.Sprintf("%s_%s", f.Name, uniq),
-			"device_class":        unit2DeviceClass(f.Unit),
-			"state_class":         unit2StateClass(f.Unit),
-			"state_topic":         state,
-			"unit_of_measurement": f.Unit,
-			"value_template":      fmt.Sprintf("{{ value_json.%s|int * %s }}", f.Name, f.Factor),
-			"expire_after":        expireAfter, // no messages for this long makes entity "Unavailable"
+			"name":                  f.Name,
+			"unique_id":             fmt.Sprintf("%s_%s", f.Name, uniq),
+			"device_class":          unit2DeviceClass(f.Unit),
+			"state_class":           unit2StateClass(f.Unit),
+			"state_topic":           state,
+			"unit_of_measurement":   f.Unit,
+			"value_template":        fmt.Sprintf("{{ value_json.%s|int * %s }}", f.Name, f.Factor),
+			"availability_topic":    state,
+			"availability_template": "{{ value_json.availability }}",
 			"device": map[string]interface{}{
 				"identifiers": [...]string{fmt.Sprintf("Inverter_%s", uniq)},
 				"name":        "Inverter",
@@ -125,14 +126,7 @@ func (conn *Connection) InsertDiscoveryRecord(discovery string, state string, ex
 	return nil
 }
 
-func (conn *Connection) InsertRecord(measurement map[string]interface{}) error {
-	// make a copy
-	m := make(map[string]interface{}, len(measurement))
-	for k, v := range measurement {
-		m[k] = v
-	}
-	// add LastTimestamp
-	m["LastTimestamp"] = time.Now().UnixNano() / int64(time.Millisecond)
+func (conn *Connection) InsertRecord(m map[string]interface{}) error {
 	json, _ := json.Marshal(m)
 	conn.publish(conn.state, string(json), false) // state messages should not be retained
 	return nil

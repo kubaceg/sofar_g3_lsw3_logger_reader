@@ -44,6 +44,9 @@ Data can also be sent over OTLP protocol to a gRPC or http server. Typically, th
 Metrics are all captured as gauges and recorded and exported at the same frequency that measurements are taken. 
 Metric names follow the convention `sofar.logger.<fieldName>` by default. This can be updated in the configuration file.
 
+### Grafana dashboard
+You can monitor Your solar instalation using [grafana dashboard](grafana)
+
 ## Origin
 This is based on program written by @sigxcpu76 https://github.com/XtheOne/Inverter-Data-Logger/issues/37#issuecomment-1303091265.
 

@@ -70,7 +70,10 @@ func main() {
 	initialize()
 
 	if hasMQTT {
-		mqtt.InsertDiscoveryRecord(config.Mqtt.Discovery, config.Mqtt.State, config.Inverter.ReadInterval*5, device.GetDiscoveryFields())
+		err := mqtt.InsertDiscoveryRecord(config.Mqtt.Discovery, config.Mqtt.State, config.Inverter.ReadInterval*5, device.GetDiscoveryFields()) // logs errors, always returns nil
+		if err != nil {
+			log.Printf("never happens: %s", err)
+		}
 	}
 
 	for {
@@ -90,7 +93,7 @@ func main() {
 		}
 
 		if hasMQTT {
-			var m map[string]interface{} = nil
+			var m map[string]interface{}
 			timeStamp := time.Now().UnixNano() / int64(time.Millisecond)
 			if measurements != nil {
 				m = make(map[string]interface{}, len(measurements)+2)
@@ -107,6 +110,7 @@ func main() {
 			}
 			err := mqtt.InsertRecord(m) // logs errors, always returns nil
 			if err != nil {
+				log.Printf("never happens: %s", err)
 			}
 		}
 

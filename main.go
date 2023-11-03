@@ -14,12 +14,9 @@ import (
 	"github.com/kubaceg/sofar_g3_lsw3_logger_reader/adapters/devices/sofar"
 	"github.com/kubaceg/sofar_g3_lsw3_logger_reader/adapters/export/mosquitto"
 	"github.com/kubaceg/sofar_g3_lsw3_logger_reader/adapters/export/otlp"
-
 	"github.com/kubaceg/sofar_g3_lsw3_logger_reader/ports"
 )
 
-// maximumFailedConnections maximum number failed logger connection, after this number will be exceeded reconnect
-// interval will be extended from 5s to readInterval defined in config file
 const maximumFailedConnections = 3
 
 var (
@@ -40,7 +37,7 @@ func initialize() {
 		log.Fatalln(err)
 	}
 
-	hasMQTT = config.Mqtt.Url != "" && config.Mqtt.Prefix != ""
+	hasMQTT = config.Mqtt.Url != "" && config.Mqtt.State != ""
 	hasOTLP = config.Otlp.Grpc.Url != "" || config.Otlp.Http.Url != ""
 
 	if isSerialPort(config.Inverter.Port) {
@@ -66,61 +63,68 @@ func initialize() {
 		}
 	}
 
-	device = sofar.NewSofarLogger(config.Inverter.LoggerSerial, port)
+	device = sofar.NewSofarLogger(config.Inverter.LoggerSerial, port, config.Inverter.AttrWhiteList, config.Inverter.AttrBlackList)
 }
 
 func main() {
 	initialize()
-	failedConnections := 0
+
+	if hasMQTT {
+		err := mqtt.InsertDiscoveryRecord(config.Mqtt.Discovery, config.Mqtt.State, config.Inverter.ReadInterval*5, device.GetDiscoveryFields()) // logs errors, always returns nil
+		if err != nil {
+			log.Printf("never happens: %s", err)
+		}
+	}
 
 	for {
-		log.Printf("performing measurements")
-		timeStart := time.Now()
-
-		measurements, err := device.Query()
-		if err != nil {
-			log.Printf("failed to perform measurements: %s", err)
-			failedConnections++
-
-			if failedConnections > maximumFailedConnections {
-				time.Sleep(time.Duration(config.Inverter.ReadInterval) * time.Second)
-			}
-
-			continue
+		if config.Inverter.LoopLogging {
+			log.Printf("performing measurements")
 		}
 
-		failedConnections = 0
+		var measurements map[string]interface{} = nil
+		var err error
+		for retry := 0; measurements == nil && retry < maximumFailedConnections; retry++ {
+			measurements, err = device.Query()
+			if err != nil {
+				log.Printf("failed to perform measurements on retry %d: %s", retry, err)
+				// at night, inverter is offline, err = "dial tcp 192.168.xx.xxx:8899: i/o timeout"
+				// at other times occaisionally: "read tcp 192.168.68.104:38670->192.168.68.106:8899: i/o timeout"
+			}
+		}
 
 		if hasMQTT {
-			go func() {
-				err = mqtt.InsertRecord(measurements)
-				if err != nil {
-					log.Printf("failed to insert record to MQTT: %s\n", err)
-				} else {
-					log.Println("measurements pushed to MQTT")
+			var m map[string]interface{}
+			timeStamp := time.Now().UnixNano() / int64(time.Millisecond)
+			if measurements != nil {
+				m = make(map[string]interface{}, len(measurements)+2)
+				for k, v := range measurements {
+					m[k] = v
 				}
-			}()
-		}
-
-		if hasOTLP {
-			go func() {
-				err = telem.CollectAndPushMetrics(context.Background(), measurements)
-				if err != nil {
-					log.Printf("error recording telemetry: %s\n", err)
-				} else {
-					log.Println("measurements pushed via OLTP")
+				m["availability"] = "online"
+				m["LastTimestamp"] = timeStamp
+			} else {
+				m = map[string]interface{}{
+					"availability":  "offline",
+					"LastTimestamp": timeStamp,
 				}
-			}()
+			}
+			err := mqtt.InsertRecord(m) // logs errors, always returns nil
+			if err != nil {
+				log.Printf("never happens: %s", err)
+			}
 		}
 
-		duration := time.Since(timeStart)
+		if hasOTLP && measurements != nil {
+			err := telem.CollectAndPushMetrics(context.Background(), measurements)
+			if err != nil {
+				log.Printf("error recording telemetry: %s\n", err)
+			} else {
+				log.Println("measurements pushed via OLTP")
+			}
 
-		delay := time.Duration(config.Inverter.ReadInterval)*time.Second - duration
-		if delay <= 0 {
-			delay = 1 * time.Second
 		}
 
-		time.Sleep(delay)
+		time.Sleep(time.Duration(config.Inverter.ReadInterval) * time.Second)
 	}
 
 }

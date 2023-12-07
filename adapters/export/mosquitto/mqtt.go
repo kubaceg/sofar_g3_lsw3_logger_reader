@@ -15,7 +15,7 @@ type MqttConfig struct {
 	Url       string  `yaml:"url"`
 	User      string  `yaml:"user"`
 	Password  string  `yaml:"password"`
-	Discovery *string `yaml:"ha_discovery_prefix",omitempty`
+	Discovery *string `yaml:"ha_discovery_prefix,omitempty"`
 	Prefix    string  `yaml:"prefix"`
 }
 

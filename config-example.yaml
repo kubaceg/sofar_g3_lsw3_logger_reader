@@ -31,7 +31,7 @@ mqtt:                     # MQTT disabled if url & prefix both blank
   url: 1.2.3.4:1883       # MQTT broker URL (e.g. 1.2.3.4:1883)
   user:                   # MQTT username (leave empty when not needed)
   password:               # MQTT password (leave empty when not needed)
-  discovery: homeassistant/sensor   # topic prefix for MQTT Discovery
+  ha_discovery_prefix: homeassistant/sensor   # topic prefix for Home Assistant MQTT Discovery
   state:     energy/inverter/state  # topic for state
 
 otlp:                     # OTLP disabled if both urls blank

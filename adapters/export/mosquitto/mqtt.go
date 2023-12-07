@@ -12,16 +12,16 @@ import (
 )
 
 type MqttConfig struct {
-	Url       string `yaml:"url"`
-	User      string `yaml:"user"`
-	Password  string `yaml:"password"`
-	Discovery string `yaml:"discovery"`
-	State     string `yaml:"state"`
+	Url       string  `yaml:"url"`
+	User      string  `yaml:"user"`
+	Password  string  `yaml:"password"`
+	Discovery *string `yaml:"ha_discovery_prefix",omitempty`
+	Prefix    string  `yaml:"prefix"`
 }
 
 type Connection struct {
 	client mqtt.Client
-	state  string
+	prefix string
 }
 
 var connectHandler mqtt.OnConnectHandler = func(client mqtt.Client) {
@@ -49,7 +49,7 @@ func New(config *MqttConfig) (*Connection, error) {
 
 	conn := &Connection{}
 	conn.client = mqtt.NewClient(opts)
-	conn.state = config.State
+	conn.prefix = config.Prefix
 	if token := conn.client.Connect(); token.Wait() && token.Error() != nil {
 		return nil, token.Error()
 	}
@@ -102,8 +102,8 @@ func unit2StateClass(unit string) string {
 }
 
 // MQTT Discovery: https://www.home-assistant.io/integrations/mqtt/#mqtt-discovery
-func (conn *Connection) InsertDiscoveryRecord(discovery string, state string, expireAfter int, fields []ports.DiscoveryField) error {
-	uniq := "01ad" // TODO: get from config?
+func (conn *Connection) InsertDiscoveryRecord(discovery string, state string, fields []ports.DiscoveryField) error {
+	uniq := "01ad"
 	for _, f := range fields {
 		topic := fmt.Sprintf("%s/%s/config", discovery, f.Name)
 		json, _ := json.Marshal(map[string]interface{}{
@@ -128,7 +128,7 @@ func (conn *Connection) InsertDiscoveryRecord(discovery string, state string, ex
 
 func (conn *Connection) InsertRecord(m map[string]interface{}) error {
 	json, _ := json.Marshal(m)
-	conn.publish(conn.state, string(json), false) // state messages should not be retained
+	conn.publish(conn.prefix, string(json), false) // state messages should not be retained
 	return nil
 }
 

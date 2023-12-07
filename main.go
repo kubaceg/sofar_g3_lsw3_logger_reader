@@ -37,7 +37,7 @@ func initialize() {
 		log.Fatalln(err)
 	}
 
-	hasMQTT = config.Mqtt.Url != "" && config.Mqtt.State != ""
+	hasMQTT = config.Mqtt.Url != "" && config.Mqtt.Prefix != ""
 	hasOTLP = config.Otlp.Grpc.Url != "" || config.Otlp.Http.Url != ""
 
 	if isSerialPort(config.Inverter.Port) {
@@ -69,11 +69,8 @@ func initialize() {
 func main() {
 	initialize()
 
-	if hasMQTT {
-		err := mqtt.InsertDiscoveryRecord(config.Mqtt.Discovery, config.Mqtt.State, config.Inverter.ReadInterval*5, device.GetDiscoveryFields()) // logs errors, always returns nil
-		if err != nil {
-			log.Printf("never happens: %s", err)
-		}
+	if hasMQTT && config.Mqtt.Discovery == nil {
+		_ = mqtt.InsertDiscoveryRecord(*config.Mqtt.Discovery, config.Mqtt.Prefix, device.GetDiscoveryFields()) // logs errors, always returns nil
 	}
 
 	for {

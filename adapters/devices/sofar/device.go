@@ -48,13 +48,13 @@ func NewSofarLogger(serialNumber uint, connPort ports.CommunicationPort, attrWhi
 
 func (s *Logger) nameFilter(k string) bool {
 	if len(s.attrWhiteList) > 0 {
-		_, ok := s.attrWhiteList[k]
-		return ok
-	} else {
-		for _, re := range s.attrBlackList {
-			if re.MatchString(k) {
-				return false
-			}
+		if _, ok := s.attrWhiteList[k]; ok {
+			return true
+		}
+	}
+	for _, re := range s.attrBlackList {
+		if re.MatchString(k) {
+			return false
 		}
 	}
 	return true

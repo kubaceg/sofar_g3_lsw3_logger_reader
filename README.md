@@ -20,6 +20,9 @@ Data will be sent into MQTT topic with name `{mqttPrefix}/{fieldName}` where:
 Full topic name for given example values is `/sensors/energy/inverter/PV_Generation_Today`.
 Additional field is `All` which contains all measurements and their values marshalled into one json.
 
+### Home Assistant
+This tool can integrate with Home Assistant using MQTT protocol. If You want to configure MQTT along with [discovery](https://www.home-assistant.io/integrations/mqtt/#mqtt-discovery) feature, just fill 'ha_discovery_prefix' and all sensors will be configured automatically in Your Home Assistant instance.
+
 ### OTLP
 Data can also be sent over OTLP protocol to a gRPC or http server. Typically, this would be received by the 
 [OTel-Collector](https://opentelemetry.io/docs/collector/) for further export to any required platform. 

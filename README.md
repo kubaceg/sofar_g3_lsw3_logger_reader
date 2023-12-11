@@ -9,7 +9,7 @@ Program queries logger modbus port in infinite loop and sends data into MQTT top
 4. Copy example config `cp config-example.yaml config.yaml`
 5. Edit `config.yaml` in Your favorite editor, fill all required stuff
 6. Build program `make build` or build for ARM machines e.g. raspberryPi `make build-arm`
-7. Run `./sofar` or `sofar-arm`
+7. Run `bin/sofar` or `bin/sofar-arm`
 
 ## Output data format
 ### MQTT

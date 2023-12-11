@@ -1,4 +1,7 @@
 # Sofar g3 LSW-3 logger reader
+
+[![Go](https://github.com/kubaceg/sofar_g3_lsw3_logger_reader/actions/workflows/go.yml/badge.svg?branch=master)](https://github.com/kubaceg/sofar_g3_lsw3_logger_reader/actions/workflows/go.yml)[![release](https://github.com/kubaceg/sofar_g3_lsw3_logger_reader/actions/workflows/release.yaml/badge.svg?event=release)](https://github.com/kubaceg/sofar_g3_lsw3_logger_reader/actions/workflows/release.yaml)
+
 Tool written in GO for reading metrics from Sofar LSW-3 and writing results into MQTT topics. 
 Program queries logger modbus port in infinite loop and sends data into MQTT topics (e.g. mosquito in HomeAssistant).
 

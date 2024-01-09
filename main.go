@@ -2,8 +2,10 @@ package main
 
 import (
 	"context"
-	"log"
+	"fmt"
+	"log/slog"
 	_ "net/http/pprof"
+	"os"
 	"strings"
 	"time"
 
@@ -31,10 +33,14 @@ var (
 )
 
 func initialize() {
+	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
+	slog.SetDefault(logger)
+
 	var err error
 	config, err = NewConfig("config.yaml")
 	if err != nil {
-		log.Fatalln(err)
+		slog.Error(fmt.Sprintf("error during config.yaml file load: %s", err))
+		os.Exit(1)
 	}
 
 	hasMQTT = config.Mqtt.Url != "" && config.Mqtt.Prefix != ""
@@ -42,16 +48,17 @@ func initialize() {
 
 	if isSerialPort(config.Inverter.Port) {
 		port = serial.New(config.Inverter.Port, 2400, 8, gser.NoParity, gser.OneStopBit)
-		log.Printf("using serial communcations port %s", config.Inverter.Port)
+		slog.Debug(fmt.Sprintf("using serial communcations port %s", config.Inverter.Port))
 	} else {
 		port = tcpip.New(config.Inverter.Port)
-		log.Printf("using TCP/IP communications port %s", config.Inverter.Port)
+		slog.Debug(fmt.Sprintf("using TCP/IP communications port %s", config.Inverter.Port))
 	}
 
 	if hasMQTT {
 		mqtt, err = mosquitto.New(&config.Mqtt)
 		if err != nil {
-			log.Fatalf("MQTT connection failed: %s", err)
+			slog.Error(fmt.Sprintf("MQTT connection failed: %s", err))
+			os.Exit(1)
 		}
 
 	}
@@ -59,7 +66,8 @@ func initialize() {
 	if hasOTLP {
 		telem, err = otlp.New(&config.Otlp)
 		if err != nil {
-			log.Fatalf("error initializating otlp connection: %s", err)
+			slog.Error(fmt.Sprintf("error initializating otlp connection: %s", err))
+			os.Exit(1)
 		}
 	}
 
@@ -75,7 +83,7 @@ func main() {
 
 	for {
 		if config.Inverter.LoopLogging {
-			log.Printf("performing measurements")
+			slog.Debug("performing measurements")
 		}
 
 		var measurements map[string]interface{} = nil
@@ -83,7 +91,7 @@ func main() {
 		for retry := 0; measurements == nil && retry < maximumFailedConnections; retry++ {
 			measurements, err = device.Query()
 			if err != nil {
-				log.Printf("failed to perform measurements on retry %d: %s", retry, err)
+				slog.Warn(fmt.Sprintf("failed to perform measurements on retry %d: %s", retry, err))
 				// at night, inverter is offline, err = "dial tcp 192.168.xx.xxx:8899: i/o timeout"
 				// at other times occaisionally: "read tcp 192.168.68.104:38670->192.168.68.106:8899: i/o timeout"
 			}
@@ -105,18 +113,15 @@ func main() {
 					"LastTimestamp": timeStamp,
 				}
 			}
-			err := mqtt.InsertRecord(m) // logs errors, always returns nil
-			if err != nil {
-				log.Printf("never happens: %s", err)
-			}
+			_ = mqtt.InsertRecord(m) // logs errors, always returns nil
 		}
 
 		if hasOTLP && measurements != nil {
 			err := telem.CollectAndPushMetrics(context.Background(), measurements)
 			if err != nil {
-				log.Printf("error recording telemetry: %s\n", err)
+				slog.Error(fmt.Sprintf("error recording telemetry: %s\n", err))
 			} else {
-				log.Println("measurements pushed via OLTP")
+				slog.Debug("measurements pushed via OLTP")
 			}
 
 		}

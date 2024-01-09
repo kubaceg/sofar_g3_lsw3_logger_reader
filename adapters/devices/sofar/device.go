@@ -2,10 +2,10 @@ package sofar
 
 import (
 	"fmt"
+	"log/slog"
 	"regexp"
 
 	"github.com/kubaceg/sofar_g3_lsw3_logger_reader/ports"
-	"golang.org/x/exp/slog"
 )
 
 type Logger struct {

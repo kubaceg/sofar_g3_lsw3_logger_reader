@@ -33,15 +33,14 @@ var (
 )
 
 func initialize() {
-	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
-	slog.SetDefault(logger)
-
 	var err error
 	config, err = NewConfig("config.yaml")
 	if err != nil {
-		slog.Error(fmt.Sprintf("error during config.yaml file load: %s", err))
-		os.Exit(1)
+		panic(fmt.Sprintf("error during config.yaml file load: %s", err))
 	}
+
+	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: config.getLoglevel()}))
+	slog.SetDefault(logger)
 
 	hasMQTT = config.Mqtt.Url != "" && config.Mqtt.Prefix != ""
 	hasOTLP = config.Otlp.Grpc.Url != "" || config.Otlp.Http.Url != ""
